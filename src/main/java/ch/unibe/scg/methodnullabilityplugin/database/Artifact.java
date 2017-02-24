@@ -1,5 +1,8 @@
-package nullablemethoddetection.database;
+package ch.unibe.scg.methodnullabilityplugin.database;
 
+/**
+ * POJO of a Maven artifact for database model.
+ */
 public class Artifact {
 
 	public final String groupId;

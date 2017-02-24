@@ -1,4 +1,4 @@
-package nullablemethoddetection;
+package ch.unibe.scg.methodnullabilityplugin.database;
 
 import java.util.Collections;
 import java.util.Set;
@@ -10,8 +10,23 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 
-public class DeclaringRootTypesFinder { 
+public class DeclaringRootTypesFinder {
 
+	/**
+	 * Finds the root classes declaring the specified method.
+	 * 
+	 * E.g. <code>B b = ...; c = b.do();</code>, if A declared do() already,
+	 * this class will find A as the root class of the invoked do() method,
+	 * although it was invoked on a B instance.
+	 * 
+	 * @param method
+	 *            The method of which to find the root classes
+	 * @return All root types declaring the specified method. Might be multiple,
+	 *         as two unrelated implemented interfaces might declare the same
+	 *         method.
+	 * @throws JavaModelException
+	 *             If the access to method model failed
+	 */
 	public Set<IType> findDeclaringRootTypes(IMethod method) throws JavaModelException {
 		ITypeHierarchy typeHierarchy = method.getDeclaringType().newSupertypeHierarchy(null);
 		return this.findDeclaringRootTypes(typeHierarchy, typeHierarchy.getType(), method);

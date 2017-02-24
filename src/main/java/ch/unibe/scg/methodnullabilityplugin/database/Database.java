@@ -1,12 +1,8 @@
-package nullablemethoddetection.database;
+package ch.unibe.scg.methodnullabilityplugin.database;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -20,10 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IMethod;
@@ -33,11 +26,10 @@ import org.eclipse.jdt.core.Signature;
 
 import com.google.common.hash.Hashing;
 
-import nullablemethoddetection.DeclaringRootTypesFinder;
-
 public class Database {
 
 	{
+		// load SQLite JDBC driver
 		try {
 			Class.forName("org.sqlite.JDBC");
 		} catch (ClassNotFoundException exception) {
@@ -45,53 +37,14 @@ public class Database {
 		}
 	}
 
-	private static final Artifact ARTIFACT_JRE = new Artifact("Oracle Corporation", "jre", "1.8.0_111");
-	private static final Artifact ARTIFACT_NO_ARTIFACT_FOUND = new Artifact("no-artifact-found", "no-artifact-found",
+	static final Artifact ARTIFACT_JRE = new Artifact("Oracle Corporation", "jre", "1.8.0_111");
+	static final Artifact ARTIFACT_NO_ARTIFACT_FOUND = new Artifact("no-artifact-found", "no-artifact-found",
 			"no-artifact-found");
-	private static final String INDEX_EXACT = "exact";
-	private static final String INDEX_ANY_VERSION = "any_version";
-	private static final String INDEX_ANY_ARTIFACT = "any_artifact";
+	static final String INDEX_EXACT = "exact";
+	static final String INDEX_ANY_VERSION = "any_version";
+	static final String INDEX_ANY_ARTIFACT = "any_artifact";
 
-	public static void main(String[] args) throws SQLException, FileNotFoundException, IOException {
-		Connection connection = DriverManager.getConnection("jdbc:sqlite:" + args[1]);
-		Statement statement = connection.createStatement();
-		Arrays.asList(INDEX_EXACT, INDEX_ANY_VERSION, INDEX_ANY_ARTIFACT).stream().forEach(index -> {
-			try {
-				statement.executeUpdate("drop table if exists " + index);
-				statement
-						.executeUpdate("create table " + index + " (hash string, checks integer, invocations integer)");
-				statement.executeUpdate("create index " + index + "_hash on exact (hash)");
-			} catch (SQLException exception) {
-				throw new RuntimeException(exception);
-			}
-		});
-		CSVParser parser = CSVFormat.DEFAULT.withQuote('"').withFirstRecordAsHeader()
-				.parse(new InputStreamReader(new FileInputStream(Paths.get(args[0]).toFile())));
-		StreamSupport.stream(parser.spliterator(), false).forEach(record -> {
-			int checks = Integer.parseInt(record.get("checks"));
-			int invocations = Integer.parseInt(record.get("invocations"));
-			if (invocations < 100) {
-				return;
-			}
-			String hashExact = hash(record.get("groupId"), record.get("artifactId"), record.get("version"),
-					record.get("class"), record.get("method"));
-			String hashAnyVersion = hash(record.get("groupId"), record.get("artifactId"), record.get("class"),
-					record.get("method"));
-			String hashAnyArtifact = hash(record.get("class"), record.get("method"));
-			try {
-				statement.executeUpdate("insert into " + INDEX_EXACT + " values('" + hashExact + "', " + checks + ", "
-						+ invocations + ")");
-				statement.executeUpdate("insert into " + INDEX_ANY_VERSION + " values('" + hashAnyVersion + "', "
-						+ checks + ", " + invocations + ")");
-				statement.executeUpdate("insert into " + INDEX_ANY_ARTIFACT + " values('" + hashAnyArtifact + "', "
-						+ checks + ", " + invocations + ")");
-			} catch (SQLException exception) {
-				throw new RuntimeException(exception);
-			}
-		});
-	}
-
-	private static String hash(String... parts) {
+	static String hash(String... parts) {
 		return Hashing.sha256().hashString(String.join("|", parts), StandardCharsets.UTF_8).toString();
 	}
 
@@ -100,11 +53,21 @@ public class Database {
 
 	public Database() throws SQLException, IOException {
 		this.declaringRootClassFinder = new DeclaringRootTypesFinder();
-		URL url = FileLocator
-				.toFileURL(Platform.getBundle("nullable-method-detection-plugin").getEntry("nullable-methods.db"));
+		URL url = FileLocator.toFileURL(
+				Platform.getBundle("method-nullability-plugin").getEntry("src/main/resources/method-nullability.db"));
 		this.connection = DriverManager.getConnection("jdbc:sqlite:" + url.getFile());
 	}
 
+	/**
+	 * Searches the nullability database for data matching the specified method.
+	 * 
+	 * @param method
+	 *            The method to search nullbility data for
+	 * @return The resulting matches, might contain empty matches, if no entries
+	 *         are found
+	 * @throws JavaModelException
+	 *             If the access to method model failed
+	 */
 	public Result search(IMethod method) throws JavaModelException {
 		Map<String, Artifact> declaringRootTypes = this.declaringRootClassFinder.findDeclaringRootTypes(method).stream()
 				.collect(Collectors.toMap(IType::getFullyQualifiedName, this::toArtifact));

@@ -10,7 +10,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 
-public class DeclaringRootTypesFinder {
+public class DeclaringRootTypesFinder { 
 
 	public Set<IType> findDeclaringRootTypes(IMethod method) throws JavaModelException {
 		ITypeHierarchy typeHierarchy = method.getDeclaringType().newSupertypeHierarchy(null);

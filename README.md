@@ -12,7 +12,7 @@ Install Eclipse Neon with PDE.
 Run the plugin with the standard `Run` or `Debug` launch buttons.
 A new Eclipse will open.
 Unpack and import the test project (see important files) into the workspace of the opened Eclipse.
-The test projects requires [M2E](http://www.eclipse.org/m2e/index.html) to be installed, so install it in the opened Eclipse.
+The test projects requires [M2E](http://www.eclipse.org/m2e/index.html) to be installed, so install it in the opened Eclipse. Add 'http://download.eclipse.org/releases/neon' to the 'Available Software Sites' so dependencies of [M2E] can be resolved. 
 Open a class in the test project and hover a method call.
 It should show a nullability popup instead of a the standard JavaDoc popup.
 

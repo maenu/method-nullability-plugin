@@ -5,7 +5,7 @@
          point="org.eclipse.jdt.ui.javaEditorTextHovers">
       <hover
             activate="true"
-            class="ch.unibe.scg.methodnullabilityplugin.hovers.MethodNullabilityHover"
+            class="ch.unibe.scg.methodnullabilityplugin.hovers.MethodNullabilityJavadocHover"
             id="ch.unibe.scg.methodnullabilityplugin.hover">
       </hover>
    </extension>

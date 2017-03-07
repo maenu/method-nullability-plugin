@@ -21,7 +21,7 @@ import ch.unibe.scg.methodnullabilityplugin.database.Result;
  */
 public class MethodNullabilityJavadocHover extends JavadocHover {
 
-	private static final String NULLABILITY_NOT_AVAILABLE = "<b>Nullability:</b> not available";
+	private static final String NULLABILITY_NOT_AVAILABLE = "<dl><dt>Nullability:</dt><dd>  not available</dd></dl>";
 	/**
 	 * Contains the method nullability data.
 	 */
@@ -40,13 +40,10 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 			String nullabilityInfo = extractNullabilityInfo(textViewer, hoverRegion);
 			if (nullabilityInfo != null && !nullabilityInfo.isEmpty()) {
 				JavadocBrowserInformationControlInput input = (JavadocBrowserInformationControlInput) obj;
-				String html = input.getHtml();
-				StringBuffer bufHtml = new StringBuffer(html);
-				String htmlWithoutEpilog = bufHtml.substring(0, bufHtml.length() - "</body></html>".length());
+				String htmlWithoutEpilog = input.getHtml().replace("</body></html>", ""); //$NON-NLS-1$ //$NON-NLS-2$
 				StringBuffer bufHtmlWithoutEpilog = new StringBuffer(htmlWithoutEpilog);
 				HTMLPrinter.addParagraph(bufHtmlWithoutEpilog, nullabilityInfo);
 				HTMLPrinter.addPageEpilog(bufHtmlWithoutEpilog);
-				
 				JavadocBrowserInformationControlInput input2 = 
 					new JavadocBrowserInformationControlInput(
 							(JavadocBrowserInformationControlInput) input.getPrevious(), 
@@ -125,7 +122,7 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 	 */
 	private String format(Match match) {
 		if (match.invocations > 0) {
-			return String.format("<b>Nullability: %.0f%% check the returned value (%d out of %d invocations)   </b>",
+			return String.format("<dl><dt>Nullability:</dt><dd>  %.0f%% check the returned value (%d out of %d invocations)</dd></dl>",
 					(float) 100 * match.checks / match.invocations, match.checks, match.invocations);
 		}
 		return NULLABILITY_NOT_AVAILABLE;

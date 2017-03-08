@@ -2,13 +2,15 @@ package ch.unibe.scg.methodnullabilityplugin.hovers;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocBrowserInformationControlInput;
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocHover;
-import org.eclipse.jface.internal.text.html.HTMLPrinter;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 
@@ -21,7 +23,16 @@ import ch.unibe.scg.methodnullabilityplugin.database.Result;
  */
 public class MethodNullabilityJavadocHover extends JavadocHover {
 
-	private static final String NULLABILITY_NOT_AVAILABLE = "<dl><dt>Nullability:</dt><dd>  not available</dd></dl>";
+	private static final String BACKGROUND_COLOR = "<span style=\"background-color: rgb(217,226,243)\">";
+	private static final String NULLABILITY_INFO = BACKGROUND_COLOR + "<b>%.0f%%</b> check the returned value (<b>%d</b> out of <b>%d</b> invocations)</span>";
+	private static final String NULLABILITY_NOT_AVAILABLE = BACKGROUND_COLOR + "nullability not available</span>";
+	
+	private static final String RETURNS_REGEX = "(<dt>Returns:</dt><dd>)(.*?)(</dd>)"; // append to javadoc 'Returns' doc
+	private static final Pattern PATTERN = Pattern.compile(RETURNS_REGEX, Pattern.DOTALL);
+
+	private static final String FALLBACK_REGEX = "(.*)(</body></html>)"; // insert at end of document a dummy 'Returns' doc
+	private static final Pattern PATTERN_FALLBACK = Pattern.compile(FALLBACK_REGEX, Pattern.DOTALL);
+	
 	/**
 	 * Contains the method nullability data.
 	 */
@@ -32,7 +43,6 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 		this.database = new Database();
 	}
 
-
 	@Override
 	public Object getHoverInfo2(ITextViewer textViewer, IRegion hoverRegion) {
 		Object obj = super.getHoverInfo2(textViewer, hoverRegion);
@@ -40,15 +50,26 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 			String nullabilityInfo = extractNullabilityInfo(textViewer, hoverRegion);
 			if (nullabilityInfo != null && !nullabilityInfo.isEmpty()) {
 				JavadocBrowserInformationControlInput input = (JavadocBrowserInformationControlInput) obj;
-				String htmlWithoutEpilog = input.getHtml().replace("</body></html>", ""); //$NON-NLS-1$ //$NON-NLS-2$
-				StringBuffer bufHtmlWithoutEpilog = new StringBuffer(htmlWithoutEpilog);
-				HTMLPrinter.addParagraph(bufHtmlWithoutEpilog, nullabilityInfo);
-				HTMLPrinter.addPageEpilog(bufHtmlWithoutEpilog);
+				Matcher matcherReturn = PATTERN.matcher(input.getHtml());
+				String htmlWithNullabilityInfo;
+				if (matcherReturn.find()) {
+					String replacementReturn = "$1$2<br>" + nullabilityInfo + "$3";
+					htmlWithNullabilityInfo = matcherReturn.replaceAll(replacementReturn);
+				} else {
+					Matcher matcherFallback = PATTERN_FALLBACK.matcher(input.getHtml());
+					String replacementFallback = "$1<dt>Returns:</dt><dd>not specified<br>" + nullabilityInfo + "</dd>$2";
+					htmlWithNullabilityInfo = matcherFallback.replaceAll(replacementFallback);
+				}
+				
+//				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+//				System.out.println(htmlWithNullabilityInfo);
+//				System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				
 				JavadocBrowserInformationControlInput input2 = 
 					new JavadocBrowserInformationControlInput(
 							(JavadocBrowserInformationControlInput) input.getPrevious(), 
 							input.getElement(), 
-							bufHtmlWithoutEpilog.toString(), 
+							htmlWithNullabilityInfo,
 							input.getLeadingImageWidth());
 				
 				return input2;
@@ -75,10 +96,9 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 		}
 		
 		IJavaElement javaElement = javaElements[0];
-		//System.out.println(javaElement.getClass());
 		try {
-			if (!(javaElement instanceof IMethod) || ((IMethod) javaElement).isConstructor()) {
-				// not a method, hence ignore
+			if (!isMethodWithReferenceTypeReturnValue(javaElement)) {
+				// not a method (or void/primitive return type), hence ignore
 				return null;
 			}
 		} catch (JavaModelException jme) {
@@ -95,6 +115,18 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 			throw new RuntimeException(exception);
 		}
 	}
+
+	private boolean isMethodWithReferenceTypeReturnValue(IJavaElement javaElement) throws JavaModelException {
+		if (javaElement instanceof IMethod) {
+			IMethod m = (IMethod) javaElement;
+			return !m.isConstructor() 
+					&& !isPrimitive(m.getReturnType()) 
+						&& !m.getReturnType().equals(Signature.SIG_VOID);
+		}
+		return false;
+	}
+	
+	
 	
 	/**
 	 * Extract the best match from the specified result: extact &gt; anyVersion
@@ -122,10 +154,25 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 	 */
 	private String format(Match match) {
 		if (match.invocations > 0) {
-			return String.format("<dl><dt>Nullability:</dt><dd>  %.0f%% check the returned value (%d out of %d invocations)</dd></dl>",
-					(float) 100 * match.checks / match.invocations, match.checks, match.invocations);
+			return String.format(NULLABILITY_INFO, (float) 100 * match.checks / match.invocations, match.checks, match.invocations);
 		}
 		return NULLABILITY_NOT_AVAILABLE;
 	}
+	
+	private boolean isPrimitive(String type) {
+		switch (type) {
+		case Signature.SIG_BOOLEAN:
+		case Signature.SIG_BYTE:
+		case Signature.SIG_CHAR:
+		case Signature.SIG_DOUBLE:
+		case Signature.SIG_FLOAT:
+		case Signature.SIG_INT:
+		case Signature.SIG_LONG:
+		case Signature.SIG_SHORT:
+			return true;
 
+		default:
+			return false;
+		}
+	}
 }

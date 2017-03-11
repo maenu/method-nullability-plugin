@@ -10,6 +10,9 @@
 		<accessrules>
 			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/ui/text/java/hover/**"/>
 			<accessrule kind="accessible" pattern="org/eclipse/jface/internal/text/html/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/ui/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/corext/refactoring/util/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/core/CompilationUnit"/>
 		</accessrules>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>

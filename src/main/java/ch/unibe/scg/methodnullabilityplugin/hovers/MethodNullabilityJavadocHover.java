@@ -1,7 +1,5 @@
 package ch.unibe.scg.methodnullabilityplugin.hovers;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,10 +11,10 @@ import org.eclipse.jdt.internal.ui.text.java.hover.JavadocBrowserInformationCont
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocHover;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.ui.PlatformUI;
 
-import ch.unibe.scg.methodnullabilityplugin.database.Database;
-import ch.unibe.scg.methodnullabilityplugin.database.Match;
-import ch.unibe.scg.methodnullabilityplugin.database.Result;
+import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor;
+import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityInfo;
 
 /**
  * Extension of {@link JavadocHover}, adding a line of nullability information.
@@ -33,14 +31,11 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 	private static final String FALLBACK_REGEX = "(.*)(</body></html>)"; // insert at end of document a dummy 'Returns' doc
 	private static final Pattern PATTERN_FALLBACK = Pattern.compile(FALLBACK_REGEX, Pattern.DOTALL);
 	
-	/**
-	 * Contains the method nullability data.
-	 */
-	private Database database;
-
-	public MethodNullabilityJavadocHover() throws SQLException, IOException {
+	private MethodNullabilityAccessor methodNullabilityAccessor;
+	
+	public MethodNullabilityJavadocHover() {
 		super();
-		this.database = new Database();
+		this.methodNullabilityAccessor = PlatformUI.getWorkbench().getService(MethodNullabilityAccessor.class);
 	}
 
 	@Override
@@ -60,10 +55,6 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 					String replacementFallback = "$1<dt>Returns:</dt><dd>not specified<br>" + nullabilityInfo + "</dd>$2";
 					htmlWithNullabilityInfo = matcherFallback.replaceAll(replacementFallback);
 				}
-				
-//				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-//				System.out.println(htmlWithNullabilityInfo);
-//				System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 				
 				JavadocBrowserInformationControlInput input2 = 
 					new JavadocBrowserInformationControlInput(
@@ -95,7 +86,10 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 			return null;
 		}
 		
-		IJavaElement javaElement = javaElements[0];
+		return retrieveNullabilityInfo(javaElements[0]);
+	}
+
+	private String retrieveNullabilityInfo(IJavaElement javaElement) {
 		try {
 			if (!isMethodWithReferenceTypeReturnValue(javaElement)) {
 				// not a method (or void/primitive return type), hence ignore
@@ -105,18 +99,11 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 			return NULLABILITY_NOT_AVAILABLE;
 		}
 		
-		IMethod method = (IMethod) javaElement;
-		try {
-			Result result = this.database.search(method);
-			Match match = this.extractBestMatch(result);
-			return this.format(match);
-		} catch (JavaModelException exception) {
-			// bubble exception if search fails
-			throw new RuntimeException(exception);
-		}
+		MethodNullabilityInfo info = methodNullabilityAccessor.retrieve((IMethod) javaElement);
+		return this.format(info);
 	}
 
-	private boolean isMethodWithReferenceTypeReturnValue(IJavaElement javaElement) throws JavaModelException {
+	public static boolean isMethodWithReferenceTypeReturnValue(IJavaElement javaElement) throws JavaModelException {
 		if (javaElement instanceof IMethod) {
 			IMethod m = (IMethod) javaElement;
 			return !m.isConstructor() 
@@ -126,40 +113,20 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 		return false;
 	}
 	
-	
-	
-	/**
-	 * Extract the best match from the specified result: extact &gt; anyVersion
-	 * &gt; anyArtifact.
-	 * 
-	 * @param result
-	 *            The result to extract the best match from.
-	 * @return The best match.
-	 */
-	private Match extractBestMatch(Result result) {
-		if (result.exact.invocations > 0) {
-			return result.exact;
-		}
-		if (result.anyVersion.invocations > 0) {
-			return result.anyVersion;
-		}
-		return result.anyArtifact;
-	}
-
 	/**
 	 * 
 	 * @param match
 	 *            The match to format.
 	 * @return A HTML string with the ratio and explicit checks and invocations.
 	 */
-	private String format(Match match) {
-		if (match.invocations > 0) {
-			return String.format(NULLABILITY_INFO, (float) 100 * match.checks / match.invocations, match.checks, match.invocations);
+	private String format(MethodNullabilityInfo match) {
+		if (match.hasInvocations()) {
+			return String.format(NULLABILITY_INFO, 100 * match.nullability(), match.getChecks(), match.getInvocations());
 		}
 		return NULLABILITY_NOT_AVAILABLE;
 	}
 	
-	private boolean isPrimitive(String type) {
+	private static boolean isPrimitive(String type) {
 		switch (type) {
 		case Signature.SIG_BOOLEAN:
 		case Signature.SIG_BYTE:

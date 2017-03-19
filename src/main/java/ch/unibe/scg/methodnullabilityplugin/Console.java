@@ -1,5 +1,7 @@
 package ch.unibe.scg.methodnullabilityplugin;
 
+import java.time.LocalTime;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
@@ -11,21 +13,29 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 
-
-
 public class Console implements IConsoleFactory {
 	
+	public static enum LogLevel {INFO, DEBUG, TRACE};
+	
+	public static LogLevel LEVEL = LogLevel.DEBUG;
 
-	public static void msg (String msg) {
-		System.out.println(msg);
+	public static void msg(String msg) {
+		System.out.println(LocalTime.now() + " | " + msg);
 		out.println(msg);
+	}
+	
+	public static void trace(String msg) {
+		if (LEVEL == LogLevel.TRACE) {
+			System.out.println(LocalTime.now() + " | " + msg);
+			out.println(msg);
+		}
 	}
 	
 	public static void msg (Exception e) {
 		msg(e.toString());
 	}
 	
-	public static void err (String msg) {
+	public static void err(String msg) {
 		System.err.println(msg);
 		err.println(msg);
 	}

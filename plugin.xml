@@ -41,4 +41,11 @@
                serviceClass="ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor"></service>
       </serviceFactory>
    </extension>
+   <extension
+         point="org.eclipse.jdt.core.compilationParticipant">
+      <compilationParticipant
+            class="ch.unibe.scg.methodnullabilityplugin.compilation.CompilationParticipant"
+            id="ch.unibe.scg.methodnullabilityplugin.compilationParticipant">
+      </compilationParticipant>
+   </extension>
 </plugin>

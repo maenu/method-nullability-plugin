@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocBrowserInformationControlInput;
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocHover;
 import org.eclipse.jface.text.IRegion;
@@ -15,6 +14,7 @@ import org.eclipse.ui.PlatformUI;
 
 import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor;
 import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityInfo;
+import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
 /**
  * Extension of {@link JavadocHover}, adding a line of nullability information.
@@ -68,7 +68,7 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 				return obj;
 			}
 		} else {
-			System.out.println("unexpected hover info type, cannot add nullability info... [hoverInfo: " + obj + "]");
+			//Console.msg("unexpected hover info type, cannot add nullability info... [hoverInfo: " + obj + "]");
 			return obj;
 		}
 	}
@@ -91,7 +91,7 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 
 	private String retrieveNullabilityInfo(IJavaElement javaElement) {
 		try {
-			if (!isMethodWithReferenceTypeReturnValue(javaElement)) {
+			if (!Util.isMethodWithReferenceTypeReturnValue(javaElement)) {
 				// not a method (or void/primitive return type), hence ignore
 				return null;
 			}
@@ -103,16 +103,6 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 		return this.format(info);
 	}
 
-	public static boolean isMethodWithReferenceTypeReturnValue(IJavaElement javaElement) throws JavaModelException {
-		if (javaElement instanceof IMethod) {
-			IMethod m = (IMethod) javaElement;
-			return !m.isConstructor() 
-					&& !isPrimitive(m.getReturnType()) 
-						&& !m.getReturnType().equals(Signature.SIG_VOID);
-		}
-		return false;
-	}
-	
 	/**
 	 * 
 	 * @param match
@@ -126,20 +116,4 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 		return NULLABILITY_NOT_AVAILABLE;
 	}
 	
-	private static boolean isPrimitive(String type) {
-		switch (type) {
-		case Signature.SIG_BOOLEAN:
-		case Signature.SIG_BYTE:
-		case Signature.SIG_CHAR:
-		case Signature.SIG_DOUBLE:
-		case Signature.SIG_FLOAT:
-		case Signature.SIG_INT:
-		case Signature.SIG_LONG:
-		case Signature.SIG_SHORT:
-			return true;
-
-		default:
-			return false;
-		}
-	}
 }

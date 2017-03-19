@@ -1,5 +1,8 @@
 package ch.unibe.scg.methodnullabilityplugin;
 
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -44,6 +47,20 @@ public class Activator extends AbstractUIPlugin {
 		Console.msg("start nullability plugin...");
 		
 		install();
+		
+//	    ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+//	        public void resourceChanged(IResourceChangeEvent event) {
+//	            System.out.println("\n---------------------->>\nSomething changed: type=" + event.getType());
+//	            if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+//	            	System.out.println("************ DOCUMENT HAS BEEN SAVED !!!!!");
+//	            }
+	            
+	            
+//	            if (event instanceof ResourceChangeEvent) {
+//	            	System.out.println("RCE: " + ((ResourceChangeEvent)event).toDebugString());
+//	            }
+//	        }
+//	    });
 	}
 
 	/*
@@ -63,6 +80,6 @@ public class Activator extends AbstractUIPlugin {
 	private static PartListener editorListener = null;
 	
 	private static void install() {
-		editorListener = new PartListener(true);
+		editorListener = new PartListener();
 	}
 }

@@ -13,12 +13,12 @@ public class CompilationParticipant extends org.eclipse.jdt.core.compiler.Compil
 	public boolean isActive(IJavaProject project) {
 //		Console.msg("\n\nCompilationParticipant.isActive ================");// + project.getProject().getName());
 //		return true;
-		return false;
+		return true;
 	}
 
 	@Override
 	public void buildStarting(BuildContext[] files, boolean isBatch) {
-//		Console.msg("\n\nCompilationParticipant.BuildStarting ================");// + Arrays.asList(files));
+//		Console.msg("\n\nCompilationParticipant.BuildStarting ================"  + Arrays.asList(files));
 	}
 	
 	@Override

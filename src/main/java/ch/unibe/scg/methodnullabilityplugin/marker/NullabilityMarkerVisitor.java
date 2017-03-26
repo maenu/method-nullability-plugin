@@ -29,6 +29,7 @@ class NullabilityMarkerVisitor extends ASTVisitor {
 	private IFile file;
 	private MethodNullabilityAccessor methodNullabilityAccessor;
 	
+	@SuppressWarnings("null")
 	public NullabilityMarkerVisitor(org.eclipse.jdt.internal.core.CompilationUnit compilationUnit) {
 		Objects.requireNonNull(compilationUnit);
 		
@@ -38,6 +39,23 @@ class NullabilityMarkerVisitor extends ASTVisitor {
 		this.methodNullabilityAccessor = PlatformUI.getWorkbench().getService(MethodNullabilityAccessor.class);
 	}
 	
+//	@Override
+//	public boolean visit(Assignment node) {
+//		Console.msg("Assignment: " + node);
+//		return super.visit(node);
+//	}
+//	
+//	@Override
+//	public boolean visit(VariableDeclarationExpression node) {
+//		Console.msg("VariableDeclarationExpression: " + node);
+//		return super.visit(node);
+//	}
+	
+//	@Override
+//	public boolean visit(ExpressionStatement node) {
+//		Console.msg("ExpressionStatement: " + node);
+//		return super.visit(node);
+//	}
 	
 	@Override 
 	public boolean visit(MethodInvocation node) { 
@@ -48,6 +66,19 @@ class NullabilityMarkerVisitor extends ASTVisitor {
 		if (isMethodWithReferenceTypeReturnValue(javaElement)) {
 			Console.trace("method " + javaElement.getElementName() + " is nullability-checkable!");
 
+			
+//			try {
+//				JavaElement parent = (JavaElement) javaElement.getParent();
+//				IJavaElement[] children = parent.getChildren();
+//				for (IJavaElement c : children) {
+//					//Console.msg(c.toString());
+//				}
+//			} catch (JavaModelException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+			
+			
 			try {
 				MethodNullabilityInfo info = methodNullabilityAccessor.retrieve((IMethod) javaElement);
 				if (info.nullability() > NULLABILITY_THRESHOLD) {
@@ -62,7 +93,9 @@ class NullabilityMarkerVisitor extends ASTVisitor {
 			}
 			
 		} else {
-			Console.trace("method " + javaElement.getElementName() + " is NOT nullability-checkable");
+			if (javaElement != null) {
+				Console.trace("method " + javaElement.getElementName() + " is NOT nullability-checkable");
+			}
 		}
 		
 		return super.visit(node); 

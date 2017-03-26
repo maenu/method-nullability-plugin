@@ -49,6 +49,30 @@ public class NullabilityMarkers {
 	private static ASTVisitor methodVisitor(CompilationUnit compilationUnit) {
 		return new ASTVisitor() {
 
+//			@Override
+//			public boolean visit(Assignment node) {
+//				Console.msg("2.Assignment: " + node);
+//				return super.visit(node);
+//			}
+//			
+//			// TODO: at work: filter variable assignments only  for nullability info!
+//			@Override
+//			public void endVisit(VariableDeclarationStatement node) {
+//				Console.msg("2.VariableDeclarationStatement: " + node);
+////				ASTRewritingStatementsTest.execute(compilationUnit.getJavaProject());
+//				Console.msg("LogASTVisitor -------->");
+//				node.accept(LogASTVisitor.create(compilationUnit));
+//				Console.msg("LogASTVisitor <-------");
+//				super.endVisit(node);
+//			}
+			
+			
+//			@Override
+//			public boolean visit(ExpressionStatement node) {
+//				Console.msg("2.ExpressionStatement: " + node);
+//				return super.visit(node);
+//			}
+			
 		    public boolean visit(MethodDeclaration method) {
 		    	Console.trace("MethodDeclaration: '" + method.toString().replaceAll("\n", "") + "'\t\t | class: " + method.getClass());
 		        method.getBody().accept(new NullabilityMarkerVisitor(compilationUnit));

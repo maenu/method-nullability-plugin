@@ -22,6 +22,8 @@ public class OnSaveNullabilityMarkerUpdater implements IPropertyListener {
 	
 	@Override
 	public void propertyChanged(Object source, int propId) {
+		Console.msg("propertyChanged(" + (propId == IEditorPart.PROP_DIRTY) + ", " + !editor.isDirty() + ")..");
+		
 		if (propId == IEditorPart.PROP_DIRTY && !editor.isDirty()) {
 			Console.msg("UPDATE NULLABILITY MARKERS NOW IN ENTIRE AST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			if (source instanceof IEditorPart) {
@@ -45,6 +47,7 @@ public class OnSaveNullabilityMarkerUpdater implements IPropertyListener {
 	public static boolean remove(IEditorPart editor) {
 		if (editor != null && editor instanceof JavaEditor) {
 			// TODO: at work: remove listener -> need manager to keep track of PropertyListener instances...
+			// TODO: at work: cf. Isa.java
 			OnSaveNullabilityMarkerUpdater updater = updaters.remove(editor);
 			Objects.requireNonNull(updater);
 			editor.removePropertyListener(updater);

@@ -42,10 +42,19 @@
       </serviceFactory>
    </extension>
    <extension
-         point="org.eclipse.jdt.core.compilationParticipant">
-      <compilationParticipant
-            class="ch.unibe.scg.methodnullabilityplugin.compilation.CompilationParticipant"
-            id="ch.unibe.scg.methodnullabilityplugin.compilationParticipant">
-      </compilationParticipant>
+         point="org.eclipse.jdt.ui.cleanUps">
+      <cleanUp
+            class="ch.unibe.scg.methodnullabilityplugin.marker.NullabilitySaveAction"
+            id="method-nullability-plugin.cleanup.nullabilitysaveaction">
+      </cleanUp>
+      <cleanUpConfigurationUI
+            class="ch.unibe.scg.methodnullabilityplugin.marker.SaveActionUI"
+            cleanUpKind="saveAction"
+            name="Nullability Save Action">
+      </cleanUpConfigurationUI>
+      <cleanUpOptionsInitializer
+            class="ch.unibe.scg.methodnullabilityplugin.marker.SaveActionOptionsInitializer"
+            cleanUpKind="saveAction">
+      </cleanUpOptionsInitializer>
    </extension>
 </plugin>

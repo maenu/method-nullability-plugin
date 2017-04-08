@@ -2,22 +2,11 @@ package ch.unibe.scg.methodnullabilityplugin;
 
 import java.util.ArrayList;
 
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.jdt.core.ElementChangedEvent;
-import org.eclipse.jdt.core.IElementChangedListener;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
-import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
@@ -25,7 +14,6 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import ch.unibe.scg.methodnullabilityplugin.marker.NullabilityMarkers;
 import ch.unibe.scg.methodnullabilityplugin.marker.OnSaveNullabilityMarkerUpdater;
-import ch.unibe.scg.methodnullabilityplugin.util.ASTUtils;
 import ch.unibe.scg.methodnullabilityplugin.util.IPartListenerInstaller;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 

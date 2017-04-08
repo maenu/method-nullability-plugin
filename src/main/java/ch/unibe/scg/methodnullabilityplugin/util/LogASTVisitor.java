@@ -3,6 +3,7 @@ package ch.unibe.scg.methodnullabilityplugin.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.dom.AST;
@@ -34,7 +35,6 @@ public abstract class LogASTVisitor extends ASTVisitor {
 			    new MethodFilter() {
 			        @Override
 			        public boolean isHandled(Method method) {
-	//		            return Modifier.isAbstract(method.getModifiers());
 			        	return method.getName().startsWith("visit");
 			        }
 			    }
@@ -53,54 +53,60 @@ public abstract class LogASTVisitor extends ASTVisitor {
 			        		if (s.contains("IntStream chars=s.chars()")) {
 			        			
 			        			VariableDeclarationStatement vds = (VariableDeclarationStatement) arg;
-			        			AST ast = vds.getAST();
-			        			ASTRewrite rewrite= ASTRewrite.create(ast);
+			        			AtomicBoolean hasNullableAnnotationAlready = new AtomicBoolean(false);
+			        			vds.accept(new ASTVisitor() {
+			        				@Override
+			        				public boolean visit(MarkerAnnotation node) {
+			        					if (node.getTypeName().getFullyQualifiedName().equals(Nullable.class.getName())) {
+			        						hasNullableAnnotationAlready.set(true);
+			        						return false;
+			        					}
+			        					return true;
+			        				}
+								});
 			        			
-			        			List<?> fragments = vds.fragments();
-			        			VariableDeclarationFragment fragment = (VariableDeclarationFragment) fragments.get(0);
-			        			Expression e = fragment.getInitializer();
-			        			if (e.getNodeType() == Expression.METHOD_INVOCATION) {
-			        				MethodInvocation mi = (MethodInvocation) fragment.getInitializer();
-			        				// TODO: get nullability..
-			        				
-			        				Type type = vds.getType();
-			        				
-			        				ListRewrite listRewrite= rewrite.getListRewrite(vds, VariableDeclarationStatement.MODIFIERS2_PROPERTY);
-			        				MarkerAnnotation markerAnnotation= ast.newMarkerAnnotation();
-//			        				markerAnnotation.setTypeName(ast.newSimpleName(Nullable.class.getSimpleName()));
-			        				markerAnnotation.setTypeName(ast.newName(Nullable.class.getName()));
-			        				listRewrite.insertAt(markerAnnotation, 0, null);
-			        				
-			        				
-			        				String source = compilationUnit.getSource();
-			        				Document document= new Document(source);
-			        				
-			        				TextEdit edits = rewrite.rewriteAST(document, compilationUnit.getJavaProject().getOptions(true));
-		        				   
-			        				// computation of the new source code
-			        				edits.apply(document);
-			        				String newSource = document.get();
+			        			if (!hasNullableAnnotationAlready.get()) {
+			        				AST ast = vds.getAST();
+				        			ASTRewrite rewrite= ASTRewrite.create(ast);
+				        			
+				        			List<?> fragments = vds.fragments();
+				        			VariableDeclarationFragment fragment = (VariableDeclarationFragment) fragments.get(0);
+				        			Expression e = fragment.getInitializer();
+				        			if (e.getNodeType() == Expression.METHOD_INVOCATION) {
+				        				MethodInvocation mi = (MethodInvocation) fragment.getInitializer();
+				        				// TODO: get nullability..
+				        				
+				        				Type type = vds.getType();
+				        				
+				        				ListRewrite listRewrite= rewrite.getListRewrite(vds, VariableDeclarationStatement.MODIFIERS2_PROPERTY);
+				        				MarkerAnnotation markerAnnotation= ast.newMarkerAnnotation();
+//				        				markerAnnotation.setTypeName(ast.newSimpleName(Nullable.class.getSimpleName()));
+				        				markerAnnotation.setTypeName(ast.newName(Nullable.class.getName()));
+				        				listRewrite.insertAt(markerAnnotation, 0, null);
+				        				
+				        				
+				        				String source = compilationUnit.getSource();
+				        				Document document= new Document(source);
+				        				
+				        				TextEdit edits = rewrite.rewriteAST(document, compilationUnit.getJavaProject().getOptions(true));
+			        				   
+				        				// computation of the new source code
+				        				edits.apply(document);
+				        				String newSource = document.get();
 
-			        				// update of the compilation unit
-			        				compilationUnit.getBuffer().setContents(newSource);
-			        				
-//			        				compilationUnit.commitWorkingCopy(false, null);
-			        				
+				        				// update of the compilation unit
+				        				compilationUnit.getBuffer().setContents(newSource);
+				        			}
 			        			}
+			        		}
+			        	} else if (arg instanceof MethodInvocation) {
+			        		String s = arg.toString();
+			        		if (s.contains("httpclient.execute(null)")) {
+			        			MethodInvocation mi = (MethodInvocation) arg;
 			        			
+			        			//compilationUnit.
 			        			
-			        			
-//			        			VariableDeclarationStatement vds = (VariableDeclarationStatement) arg;
-//			        			AST ast = vds.getAST();
-//			        			final ASTRewrite rewriter = ASTRewrite.create(ast)
-//			        			final ListRewrite listRewrite = rewriter.getListRewrite(vds, CompilationUnit.TYPES_PROPERTY);
-//			        			final MarkerAnnotation javaTaskInfoA = ast.newMarkerAnnotation();
-//			        			javaTaskInfoA.setTypeName(ast.newSimpleName(Nullable.class.getSimpleName()));
-//			        			vds.accept(new ASTVisitor() { public boolean visit(SimpleType node) {
-//			        			    rewriter.getListRewrite(node, node.getModifiersProperty()).insertAt(javaTaskInfoA, 0, null);
-//			        			    return false;
-//			        			}});
-			        			
+			        			System.out.println(mi);
 			        		}
 			        	}
 			        }

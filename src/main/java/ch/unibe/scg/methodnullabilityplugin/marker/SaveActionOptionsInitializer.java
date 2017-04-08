@@ -9,7 +9,7 @@ public class SaveActionOptionsInitializer implements ICleanUpOptionsInitializer 
 
 	@Override
 	public void setDefaultOptions(CleanUpOptions options) {
-		Console.msg("options: " + options.getKeys());
+		Console.msg("SaveActionOptionsInitializer.options: " + options.getKeys());
 	}
 
 }

@@ -4,8 +4,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.Assignment;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.ui.fix.AbstractCleanUp;
@@ -29,8 +27,8 @@ public class NullabilitySaveAction extends AbstractCleanUp {
     	ASTNode ast = ASTUtils.getAST(compilationUnit);
 		ast.accept(methodVisitor((CompilationUnit) compilationUnit));
     	
-		// TODO: at work Sunday: 
-		// - SaveAction fertig machen: ICleanUpFix zurückgeben (Cursor ist nach speicher zuoberst)
+		// TODO: at work Sunday 25.3.17: 
+		// - SaveAction fertig machen: ICleanUpFix zurückgeben (Cursor ist nach speichern zuoberst)
 		// - Nullabiltiy check bei allen methoden einbauen, nicht nur bei Isa... chars()
 		// - refactor source
 		

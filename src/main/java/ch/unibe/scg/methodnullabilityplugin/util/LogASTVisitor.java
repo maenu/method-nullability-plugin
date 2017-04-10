@@ -2,6 +2,7 @@ package ch.unibe.scg.methodnullabilityplugin.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,6 +22,7 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
 
 import ch.unibe.scg.methodnullabilityplugin.Console;
+import ch.unibe.scg.methodnullabilityplugin.marker.NullabilitySaveAction;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
@@ -45,9 +47,10 @@ public abstract class LogASTVisitor extends ASTVisitor {
 				
 			    @Override
 			    public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-			    	Console.msg("Method: '" + thisMethod + "'");
+			    	Console.trace("Method: '" + thisMethod + "'");
+			    	Console.trace("Arguments: [" + Arrays.asList(args) + "]");
 			        for (Object arg : args) {
-			        	Console.msg("\tArg val: " + arg);
+			        	Console.trace("\tArg val: " + arg);
 			        	if (arg instanceof VariableDeclarationStatement) {
 			        		String s = arg.toString();
 			        		if (s.contains("IntStream chars=s.chars()")) {
@@ -90,12 +93,14 @@ public abstract class LogASTVisitor extends ASTVisitor {
 				        				
 				        				TextEdit edits = rewrite.rewriteAST(document, compilationUnit.getJavaProject().getOptions(true));
 			        				   
-				        				// computation of the new source code
-				        				edits.apply(document);
-				        				String newSource = document.get();
-
-				        				// update of the compilation unit
-				        				compilationUnit.getBuffer().setContents(newSource);
+				        				NullabilitySaveAction.lastEdit = edits;
+				        				
+//				        				// computation of the new source code
+//				        				edits.apply(document);
+//				        				String newSource = document.get();
+//
+//				        				// update of the compilation unit
+//				        				compilationUnit.getBuffer().setContents(newSource);
 				        			}
 			        			}
 			        		}
@@ -107,6 +112,11 @@ public abstract class LogASTVisitor extends ASTVisitor {
 			        			//compilationUnit.
 			        			
 			        			System.out.println(mi);
+			        		}
+			        		if (s.contains("codePoints")) {
+			        			
+			        			System.out.println("DID IT!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			        			
 			        		}
 			        	}
 			        }

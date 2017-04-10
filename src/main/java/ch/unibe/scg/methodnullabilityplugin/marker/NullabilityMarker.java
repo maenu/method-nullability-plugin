@@ -15,9 +15,9 @@ import ch.unibe.scg.methodnullabilityplugin.Console;
 import ch.unibe.scg.methodnullabilityplugin.util.ASTUtils;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
-public class NullabilityMarkers {
+public class NullabilityMarker {
 
-	private NullabilityMarkers() {}
+	private NullabilityMarker() {}
 	
 	public static void add(IEditorPart ed) {
 		if (ed instanceof JavaEditor) {

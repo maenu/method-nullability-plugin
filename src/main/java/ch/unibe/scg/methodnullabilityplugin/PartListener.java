@@ -12,8 +12,8 @@ import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-import ch.unibe.scg.methodnullabilityplugin.marker.NullabilityMarkers;
-import ch.unibe.scg.methodnullabilityplugin.marker.OnSaveNullabilityMarkerUpdater;
+import ch.unibe.scg.methodnullabilityplugin.marker.NullabilityMarker;
+import ch.unibe.scg.methodnullabilityplugin.marker.EditorOnSaveListener;
 import ch.unibe.scg.methodnullabilityplugin.util.IPartListenerInstaller;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
@@ -36,8 +36,8 @@ public class PartListener implements IPartListener2 {
 				ArrayList<IEditorPart> eds = IPartListenerInstaller
 						.getCurrentEditors();
 				for (IEditorPart ed : eds) {
-					NullabilityMarkers.add(ed);
-					OnSaveNullabilityMarkerUpdater.create(ed);
+					NullabilityMarker.add(ed);
+					EditorOnSaveListener.create(ed);
 //					if (ed instanceof JavaEditor) {
 //						addDocumentListener((JavaEditor) ed);
 //					}
@@ -63,8 +63,8 @@ public class PartListener implements IPartListener2 {
 
 		// only testwise...
 		IEditorPart editor = Util.getEditor(partRef);
-		NullabilityMarkers.delete(editor);
-		OnSaveNullabilityMarkerUpdater.remove(editor);
+		NullabilityMarker.delete(editor);
+		EditorOnSaveListener.remove(editor);
 	}
 
 	@Override
@@ -78,8 +78,8 @@ public class PartListener implements IPartListener2 {
 		IEditorPart editor = Util.getEditor(partRef);
 		
 		if (editor != null && editor instanceof JavaEditor) {
-			NullabilityMarkers.add(editor);
-			OnSaveNullabilityMarkerUpdater.create(editor);
+			NullabilityMarker.add(editor);
+			EditorOnSaveListener.create(editor);
 //			addDocumentListener((JavaEditor) editor);
 			
 			// TODO: at work: live editing support..

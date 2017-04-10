@@ -1,12 +1,8 @@
 package ch.unibe.scg.methodnullabilityplugin.compilation;
 
-import java.util.Arrays;
-
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.compiler.BuildContext;
 import org.eclipse.jdt.core.compiler.ReconcileContext;
-
-import ch.unibe.scg.methodnullabilityplugin.Console;
 
 public class CompilationParticipant extends org.eclipse.jdt.core.compiler.CompilationParticipant {
 
@@ -16,13 +12,12 @@ public class CompilationParticipant extends org.eclipse.jdt.core.compiler.Compil
 	@Override
 	public boolean isActive(IJavaProject project) {
 //		Console.msg("\n\nCompilationParticipant.isActive ================");// + project.getProject().getName());
-//		return true;
 		return true;
 	}
 
 	@Override
 	public void buildStarting(BuildContext[] files, boolean isBatch) {
-		Console.msg("\n\nCompilationParticipant.BuildStarting ================"  + Arrays.asList(files));
+//		Console.msg("\n\nCompilationParticipant.BuildStarting ================"  + Arrays.asList(files));
 	}
 	
 	@Override
@@ -35,7 +30,7 @@ public class CompilationParticipant extends org.eclipse.jdt.core.compiler.Compil
 	
 	@Override
 	public void reconcile(ReconcileContext context) {
-		Console.msg("\n\nCompilationParticipant.reconcile ================");// + context);
-		Console.msg("File: " + context.getWorkingCopy().getElementName());
+//		Console.msg("\n\nCompilationParticipant.reconcile ================");// + context);
+//		Console.msg("File: " + context.getWorkingCopy().getElementName());
 	}
 }

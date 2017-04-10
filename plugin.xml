@@ -57,12 +57,4 @@
             cleanUpKind="saveAction">
       </cleanUpOptionsInitializer>
    </extension>
-   <extension
-         point="org.eclipse.jdt.core.compilationParticipant">
-      <compilationParticipant
-            class="ch.unibe.scg.methodnullabilityplugin.compilation.CompilationParticipant"
-            id="method-nullability-plugin.compilationParticipant1"
-            modifiesEnvironment="true">
-      </compilationParticipant>
-   </extension>
 </plugin>

@@ -8,9 +8,20 @@ import java.util.Objects;
 public class MethodNullabilityInfo {
 
 	private final Match match;
+	private final boolean exists;
 	
 	public MethodNullabilityInfo(Match match) {
 		this.match = Objects.requireNonNull(match);
+		this.exists = true;
+	}
+	
+	public MethodNullabilityInfo() {
+		this.match = null;
+		this.exists = false;
+	}
+	
+	public boolean exists() {
+		return exists;
 	}
 	
 	public int getChecks() {

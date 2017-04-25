@@ -3,10 +3,12 @@ package ch.unibe.scg.methodnullabilityplugin.database;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 
 import ch.unibe.scg.methodnullabilityplugin.Console;
+import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
 public class MethodNullabilityAccessor {
 
@@ -15,6 +17,8 @@ public class MethodNullabilityAccessor {
 	 */
 	private Database database;
 	
+	private static final MethodNullabilityInfo NA = new MethodNullabilityInfo();
+	
 	public MethodNullabilityAccessor() {
 		try {
 			this.database = new Database();
@@ -22,6 +26,14 @@ public class MethodNullabilityAccessor {
 			Console.err(e);
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public MethodNullabilityInfo retrieve(IJavaElement javaElement) {
+		if (isMethodWithReferenceTypeReturnValue(javaElement)) {
+			Console.trace("method " + javaElement.getElementName() + " is nullability-checkable!");
+			return retrieve((IMethod) javaElement);
+		}
+		return NA;
 	}
 	
 	public MethodNullabilityInfo retrieve(IMethod method) {
@@ -50,6 +62,15 @@ public class MethodNullabilityAccessor {
 			return result.anyVersion;
 		}
 		return result.anyArtifact;
+	}
+	
+	private boolean isMethodWithReferenceTypeReturnValue(IJavaElement javaElement) {
+		try {
+			return Util.isMethodWithReferenceTypeReturnValue(javaElement);
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 }

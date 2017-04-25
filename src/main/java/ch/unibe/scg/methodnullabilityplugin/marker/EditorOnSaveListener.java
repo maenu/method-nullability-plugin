@@ -49,10 +49,12 @@ public class EditorOnSaveListener implements IPropertyListener {
 		Console.msg("propertyChanged(" + (propId == IEditorPart.PROP_DIRTY) + ", " + !editor.isDirty() + ")..");
 		
 		if (propId == IEditorPart.PROP_DIRTY && !editor.isDirty()) {
-			Console.msg("UPDATE NULLABILITY MARKERS NOW IN ENTIRE AST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			Console.msg("EditorOnSaveListener.UPDATE NULLABILITY MARKERS NOW IN ENTIRE AST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			if (source instanceof IEditorPart) {
-				Console.msg("going to update nullability markers in file " + ((IEditorPart) source).getTitle() + "...");
-				NullabilityMarker.update((IEditorPart) source);
+				Console.msg("EditorOnSaveListener: not doing anything here now or uncomment!!");
+				// THIS IS NOW DONE IN NullabilitySaveAction by NullableVisitor..
+//				Console.msg("going to update nullability markers in file " + ((IEditorPart) source).getTitle() + "...");
+//				NullabilityMarker.update((IEditorPart) source);
 			}
 		} 
 	}

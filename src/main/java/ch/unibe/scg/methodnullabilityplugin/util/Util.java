@@ -1,13 +1,19 @@
 package ch.unibe.scg.methodnullabilityplugin.util;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
@@ -62,12 +68,28 @@ public class Util {
 		}
 	}
 	
+	@SuppressWarnings("null")
 	public static IEditorPart getEditor(IWorkbenchPartReference partRef) {
 		IWorkbenchPart part = partRef.getPart(false);
 		IEditorPart editor = null;
 		if (part != null && part instanceof IEditorPart) {
-			editor = (IEditorPart) part.getAdapter(IEditorPart.class);
+			editor = part.getAdapter(IEditorPart.class);
 		}
 		return editor;
+	}
+	
+	public static boolean hasNullableAnnotation(ASTNode vds) {
+		AtomicBoolean hasNullableAnnotationAlready = new AtomicBoolean(false);
+		vds.accept(new ASTVisitor() {
+			@Override
+			public boolean visit(MarkerAnnotation node) {
+				if (node.getTypeName().getFullyQualifiedName().equals(Nullable.class.getName())) {
+					hasNullableAnnotationAlready.set(true);
+					return false;
+				}
+				return true;
+			}
+		});
+		return hasNullableAnnotationAlready.get();
 	}
 }

@@ -76,6 +76,7 @@ class NullableVisitor extends ASTVisitor {
 		Console.msg("generateAnnotations() -->");
 		try {
 			
+			// test if branch ok.
 			ASTRewrite rewrite = ASTRewrite.create(ast);
 			
 			for (VariableDeclarationStatement vds : vdsToAnnotate) {

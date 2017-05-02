@@ -18,6 +18,11 @@ public class NullabilitySaveAction extends AbstractCleanUp {
 	
 	@Override
 	public ICleanUpFix createFix(CleanUpContext context) throws CoreException {
+		boolean refactorThisAway = true;
+		if (refactorThisAway) {
+			return null;
+		}
+		
     	ICompilationUnit compilationUnit= context.getCompilationUnit(); //context.getAST();
     	if (compilationUnit == null)
     		return null;

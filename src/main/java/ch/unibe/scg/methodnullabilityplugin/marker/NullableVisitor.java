@@ -8,7 +8,6 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
@@ -82,9 +81,14 @@ class NullableVisitor extends ASTVisitor {
 			for (VariableDeclarationStatement vds : vdsToAnnotate) {
 				ListRewrite listRewrite = rewrite.getListRewrite(vds, VariableDeclarationStatement.MODIFIERS2_PROPERTY);
 				MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-				markerAnnotation.setTypeName(ast.newName(Nullable.class.getName()));
+				markerAnnotation.setTypeName(ast.newName(org.eclipse.jdt.annotation.Nullable.class.getName()));
 				listRewrite.insertAt(markerAnnotation, 0, null);
 			}
+			
+
+//			ClassMap cm = new ClassMap();
+//			Object object = cm.get(new Object());
+//			object.toString();
 			
 			// TODO at work: 25.04: find respective VariableDeclarationStatement and add nullable annotation
 			// either local or member of class!!!

@@ -12,8 +12,9 @@ import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-import ch.unibe.scg.methodnullabilityplugin.marker.NullabilityMarker;
+import ch.unibe.scg.methodnullabilityplugin.eea.CsvToEeaConverter;
 import ch.unibe.scg.methodnullabilityplugin.marker.EditorOnSaveListener;
+import ch.unibe.scg.methodnullabilityplugin.marker.NullabilityMarker;
 import ch.unibe.scg.methodnullabilityplugin.util.IPartListenerInstaller;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
@@ -65,6 +66,15 @@ public class PartListener implements IPartListener2 {
 		IEditorPart editor = Util.getEditor(partRef);
 		NullabilityMarker.delete(editor);
 		EditorOnSaveListener.remove(editor);
+		
+		
+		try {
+			System.out.println("EXECUTE CsvToEeaConverter -->");
+			new CsvToEeaConverter().convert(null);
+			System.out.println("EXECUTE CsvToEeaConverter <--");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

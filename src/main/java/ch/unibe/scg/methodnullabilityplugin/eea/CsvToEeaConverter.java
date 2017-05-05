@@ -7,7 +7,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.util.ExternalAnnotationUtil;
 import org.eclipse.jdt.core.util.ExternalAnnotationUtil.MergeStrategy;
@@ -16,56 +16,52 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.eclipse.jdt.internal.core.util.KeyToSignature;
 
+import ch.unibe.scg.methodnullabilityplugin.Console;
 import ch.unibe.scg.methodnullabilityplugin.eea.CsvAccessor.NullabilityRecord;
 
 public class CsvToEeaConverter {
 
-	public static void main(String[] args) throws Exception {
-		String csvFilename;
-		if (args.length == 1) {
-			csvFilename = args[0];
-		} else {
-			csvFilename = "inter-intra_small.csv";
-		}
-		
-//		new CsvToEeaConverter().convert(csvFilename);
-		
-		new CsvToEeaConverter().runTests();
+	private static final MergeStrategy MERGE_STRATEGY = MergeStrategy.OVERWRITE_ANNOTATIONS;
+	
+	private int numTotalCsvRecords = 0;
+	private int numProcessedCsvRecords = 0;
+	private int numEeaFiles = 0;
+	
+	public int getProcessedCsvRecords() {
+		return numProcessedCsvRecords;
 	}
 	
-	public void convert(String csvFilename, String eeaPath) throws Exception {
-//		if (csvFilename == null) {
-//			csvFilename = "classpath:inter-intra_small.csv";
-//		}
-		List<NullabilityRecord> csvEntries = CsvAccessor.loadCsv(csvFilename);
-		System.out.println("read " + csvEntries.size() + " entries...");
-		
-//		String typeName = null;
-//		InputStream input = null;
-//		ExternalAnnotationProvider eap = new ExternalAnnotationProvider(input, typeName);
-		
+	public int getTotalCsvRecords() {
+		return numTotalCsvRecords;
+	}
+	
+	public int getNumEeaFiles() {
+		return numEeaFiles;
+	}
+	
+	public void execute(String csvFilename, String eeaPath) throws Exception {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-//		String annotationPathStr = "annot";
-//		IResource resource = root.findMember("method-nullability-plugin-test/" + annotationPathStr);
 		IResource resource = root.findMember(eeaPath);
+		IPath annotationPath = null;
 		if (resource == null) {
-			throw new IllegalArgumentException("eeaPath not found: " + eeaPath);
+			annotationPath = new Path(eeaPath);
+			if (!annotationPath.isValidPath(".")) {
+				throw new IllegalArgumentException("Path to EEA root not valid: " + annotationPath);
+			}
+		} else {
+			annotationPath = resource.getFullPath(); //new Path(rawAnnotationPath);
 		}
-//		
-//		IProject project = root.getProject();
-//		IJavaProject javaProject = JavaCore.create(project);
-		MergeStrategy mergeStrategy = MergeStrategy.OVERWRITE_ANNOTATIONS;
 		
-//		IResource resource = project.getWorkspace().getRoot().findMember(annotationPathStr);
-		IPath annotationPath = resource.getFullPath(); //new Path(rawAnnotationPath);
+		if (annotationPath == null) {
+			throw new IllegalArgumentException("Path to EEA root not found: " + eeaPath);
+		}
+
 		
-//		csvEntries = new ArrayList<>();
-//		NullabilityRecord nr1 = new NullabilityRecord(null, null, 
-//				"org.apache.http.client.HttpClient", 
-//				"org.apache.http.HttpResponse execute(org.apache.http.client.methods.HttpUriRequest, org.apache.http.protocol.HttpContext)", 
-//				5, 10);
-//		csvEntries.add(nr1);
+		List<NullabilityRecord> csvEntries = CsvAccessor.loadCsv(csvFilename);
+		this.numTotalCsvRecords = csvEntries.size();
+		Console.msg("read " + csvEntries.size() + " entries...");
 		
+		int recordsWithInvocations = 0;
 		for (NullabilityRecord nr : csvEntries) {
 			
 			if (nr.hasInvocations()) {
@@ -79,36 +75,18 @@ public class CsvToEeaConverter {
 
 				
 				String fAffectedTypeName = nr.getClazz().replace('.', '/'); // "javassist/ClassMap";
-				IFile file= getAnnotationFile(root, nr.getClazz(), annotationPath);
-				IFile fAnnotationFile = file;
+				IFile fAnnotationFile = getAnnotationFile(root, nr.getClazz(), annotationPath);
 				String fSelector = determineSelector(nr.getMethod());
 				
 				String fSignature = determineSignature(nr.getMethod(),  nr.getClazz()); // e.g. "(Ljava/lang/Object;)Ljava/lang/Object;";
 				String fAnnotatedSignature = annotateSignature(fSignature, annotation); // "L0java/lang/Object;";
 				
-				MergeStrategy fMergeStrategy = mergeStrategy;
-				IProgressMonitor monitor = null;
-				ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, fMergeStrategy, monitor);
-				
-				
-//				String methodSignature = null;
-//				ExternalAnnotationUtil.insertReturnAnnotation(methodSignature, annotation, mergeStrategy);
-				
-//				IFile annotationFile = ExternalAnnotationUtil.getAnnotationFile(this.project, methodBinding.getDeclaringClass(), null);
-//				String originalSignature = ExternalAnnotationUtil.extractGenericSignature(methodBinding);
-//				ExternalAnnotationUtil.annotateMember("libs/Lib1", annotationFile,
-//						"getLib", 
-//						originalSignature, 
-//						"()L1libs/Lib1<TT;>;", 
-//						MergeStrategy.OVERWRITE_ANNOTATIONS, null);
-				
-				
-				
-				
+				ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, MERGE_STRATEGY, null);
+				recordsWithInvocations++;
 			}
-			
-			
 		}
+		
+		this.numProcessedCsvRecords = recordsWithInvocations;
 	}
 	
 	private String annotateSignature(String fSignature, char annotation) {
@@ -121,32 +99,6 @@ public class CsvToEeaConverter {
 		return returnType.replaceFirst("L", "L" + annotation);
 	}
 
-	public void runTests() {
-		String method = "java.lang.Object get(java.lang.Object)";
-		String clazz = "javassist.ClassMap";
-		String expected = "(Ljava/lang/Object;)Ljava/lang/Object;";
-		runTest(method, clazz, expected);
-		
-		method = "java.lang.Class loadClass(java.lang.String, boolean)";
-		clazz = "javassist.Loader";
-		expected = "(Ljava/lang/String;Z)Ljava/lang/Class;";
-		runTest(method, clazz, expected);
-		
-		method = "org.apache.http.HttpResponse execute(org.apache.http.client.methods.HttpUriRequest, org.apache.http.protocol.HttpContext)";
-		clazz = "org.apache.http.client.HttpClient";
-		expected = "(Lorg/apache/http/client/methods/HttpUriRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;";
-		runTest(method, clazz, expected);
-	}
-
-	private void runTest(String method, String clazz, String expected) {
-		String result = determineSignature(method, clazz);
-		System.out.println("actual..: " + result);
-		System.out.println("expected: " + expected);
-		if (!result.equals(expected)) {
-			throw new IllegalArgumentException(result + " vs. " + expected);
-		}
-	}
-	
 	private String determineSelector(String method) {
 		int indexOf = method.indexOf(" ");
 		String substring = method.substring(indexOf+1);
@@ -164,13 +116,12 @@ public class CsvToEeaConverter {
 	
 	// MethodBinding.computeUniqueKey(isLeaf=true)
 	private char[] computeUniqueKey(String method, String clazz) {
-		boolean isLeaf = true;
+//		boolean isLeaf = true;
 		// declaring class
 		char[] declaringKey = declaringClassComputeUniqueKey(clazz);
 		// [L, j, a, v, a, s, s, i, s, t, /, C, l, a, s, s, M, a, p, ;]
 		int declaringLength = declaringKey.length;
 
-		
 		// selector
 		char[] selector = determineSelector(method).toCharArray();
 		int selectorLength = selector == TypeConstants.INIT ? 0 : selector.length;
@@ -178,13 +129,15 @@ public class CsvToEeaConverter {
 		// generic signature
 		//TODO: char[] sig = genericSignature();
 		char[] sig = null;
-		boolean isGeneric = false; //sig != null;
+//		boolean isGeneric = false; //sig != null;
 
-		if (!isGeneric) sig = signature(method);
+//		if (!isGeneric) {
+		sig = signature(method);
+//		}
 		int signatureLength = sig.length;
 
 		// thrown exceptions
-		int thrownExceptionsLength = 0; // this.thrownExceptions.length;
+//		int thrownExceptionsLength = 0; // this.thrownExceptions.length;
 		int thrownExceptionsSignatureLength = 0;
 //		char[][] thrownExceptionsSignatures = null;
 //		boolean addThrownExceptions = thrownExceptionsLength > 0 && (!isGeneric || CharOperation.lastIndexOf('^', sig) < 0);
@@ -250,7 +203,7 @@ public class CsvToEeaConverter {
 		buffer.append('(');
 
 		String[] targetParameters = getParameters(methodSignature); // this.parameters;
-		boolean isConstructor = false; // isConstructor(selector);
+//		boolean isConstructor = false; // isConstructor(selector);
 //		if (isConstructor) { // && this.declaringClass.isEnum()) { // insert String name,int ordinal
 //			buffer.append(ConstantPool.JavaLangStringSignature);
 //			buffer.append(TypeBinding.INT.signature());
@@ -362,14 +315,6 @@ public class CsvToEeaConverter {
 		return selector == TypeConstants.INIT;
 	}
 	
-//	public static void main(String[] args) {
-//		
-//		System.out.println(determineSelector("org.kuali.rice.krad.uif.component.Component processAdditionalProperties(org.kuali.rice.krad.uif.component.Component,java.lang.String[])"));
-//		System.out.println(determineSelector("org.apache.mesos.Protos$CommandInfo$Builder create()"));
-//		System.out.println(determineSelector("java.util.logging.Logger getLogger()"));
-//
-//	}
-
 	// taken from ExternalAnnotationUtil.getAnnotationFile
 	public static IFile getAnnotationFile(IWorkspaceRoot workspaceRoot, String qualifiedTypeName, IPath annotationPath) throws Exception {
 //		
@@ -393,7 +338,51 @@ public class CsvToEeaConverter {
 		}
 		
 		annotationPath = annotationPath.append(binaryTypeName).addFileExtension(ExternalAnnotationProvider.ANNOTATION_FILE_EXTENSION);
-		return workspaceRoot.getFile(annotationPath);
+		IFile annotationFile = workspaceRoot.getFile(annotationPath);
+		if (annotationFile == null) {
+			annotationFile = ResourcesPlugin.getWorkspace().getRoot().getFile(annotationPath);
+		}
+		if (annotationFile == null) {
+			throw new IllegalArgumentException("Path to EEA file not found: " + annotationPath);
+		}
+		return annotationFile;
 	}
 	
+	public void runTests() {
+		String method = "java.lang.Object get(java.lang.Object)";
+		String clazz = "javassist.ClassMap";
+		String expected = "(Ljava/lang/Object;)Ljava/lang/Object;";
+		runTest(method, clazz, expected);
+		
+		method = "java.lang.Class loadClass(java.lang.String, boolean)";
+		clazz = "javassist.Loader";
+		expected = "(Ljava/lang/String;Z)Ljava/lang/Class;";
+		runTest(method, clazz, expected);
+		
+		method = "org.apache.http.HttpResponse execute(org.apache.http.client.methods.HttpUriRequest, org.apache.http.protocol.HttpContext)";
+		clazz = "org.apache.http.client.HttpClient";
+		expected = "(Lorg/apache/http/client/methods/HttpUriRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;";
+		runTest(method, clazz, expected);
+	}
+
+	private void runTest(String method, String clazz, String expected) {
+		String result = determineSignature(method, clazz);
+		System.out.println("actual..: " + result);
+		System.out.println("expected: " + expected);
+		if (!result.equals(expected)) {
+			throw new IllegalArgumentException(result + " vs. " + expected);
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		String csvFilename;
+		if (args.length == 1) {
+			csvFilename = args[0];
+		} else {
+			csvFilename = "inter-intra_small.csv";
+		}
+		
+		new CsvToEeaConverter().execute(csvFilename, "method-nullability-plugin/annot");
+//		new CsvToEeaConverter().runTests();
+	}
 }

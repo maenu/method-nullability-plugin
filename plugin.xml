@@ -57,4 +57,12 @@
             cleanUpKind="saveAction">
       </cleanUpOptionsInitializer>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="ch.unibe.scg.methodnullabilityplugin.pref.MethodNullabilityPreferencePage"
+            id="ch.unibe.scg.methodnullability.prefs"
+            name="Method Nullability">
+      </page>
+   </extension>
 </plugin>

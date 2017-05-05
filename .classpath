@@ -20,7 +20,7 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins">
 		<attributes>
-			<attribute name="annotationpath" value="/method-nullability-plugin/extAnnot"/>
+			<attribute name="annotationpath" value="/method-nullability-plugin/annot"/>
 		</attributes>
 		<accessrules>
 			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/ui/text/java/hover/**"/>
@@ -28,6 +28,9 @@
 			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/ui/**"/>
 			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/corext/refactoring/util/**"/>
 			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/core/CompilationUnit"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/compiler/lookup/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/compiler/classfmt/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/core/util/**"/>
 		</accessrules>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/javassist.jar" sourcepath="C:/Users/lukaszbinden/Desktop/UniFr/Courses/Seminar Software Construction/tmp/jboss-javassist-javassist-6a3ed31/src/main">

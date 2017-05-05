@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.util.ExternalAnnotationUtil;
 import org.eclipse.jdt.core.util.ExternalAnnotationUtil.MergeStrategy;
@@ -23,39 +22,46 @@ public class CsvToEeaConverter {
 
 	private static final MergeStrategy MERGE_STRATEGY = MergeStrategy.OVERWRITE_ANNOTATIONS;
 	
+	private String csvFilename;
+	private String eeaPath;
+	private double maxNullabilityNonNull;
+	private double minNullabilityNullable;
+
 	private int numTotalCsvRecords = 0;
 	private int numProcessedCsvRecords = 0;
-	private int numEeaFiles = 0;
+	private int numSkippedCsvRecords = 0;
+	private int numNonNull = 0;
+	private int numNullable = 0;
 	
-	public int getProcessedCsvRecords() {
-		return numProcessedCsvRecords;
+	public CsvToEeaConverter(String csvFilename, String eeaPath, double maxNullabilityNonNull, double minNullabilityNullable) {
+		this.csvFilename = csvFilename;
+		this.eeaPath = eeaPath;
+		this.maxNullabilityNonNull = maxNullabilityNonNull;
+		this.minNullabilityNullable = minNullabilityNullable;
+		// plausibilize
+		if (maxNullabilityNonNull < 0 || maxNullabilityNonNull > 1) {
+			throw new IllegalArgumentException("maxNullabilityNonNull must be between 0 and 1.");
+		}
+		if (minNullabilityNullable < 0 || minNullabilityNullable > 1) {
+			throw new IllegalArgumentException("minNullabilityNullable must be between 0 and 1.");
+		}
+		if (maxNullabilityNonNull > minNullabilityNullable) {
+			throw new IllegalArgumentException("maxNullabilityNonNull must be smaller than minNullabilityNullable.");
+		}
 	}
 	
-	public int getTotalCsvRecords() {
-		return numTotalCsvRecords;
-	}
-	
-	public int getNumEeaFiles() {
-		return numEeaFiles;
-	}
-	
-	public void execute(String csvFilename, String eeaPath) throws Exception {
+	public void execute() throws Exception {
+		Console.msg("CsvToEeaConverter.execute() -->");
+		
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(eeaPath);
-		IPath annotationPath = null;
 		if (resource == null) {
-			annotationPath = new Path(eeaPath);
-			if (!annotationPath.isValidPath(".")) {
-				throw new IllegalArgumentException("Path to EEA root not valid: " + annotationPath);
-			}
-		} else {
-			annotationPath = resource.getFullPath(); //new Path(rawAnnotationPath);
+			throw new IllegalArgumentException("EEA root must be in workspace.");
 		}
-		
+		IPath annotationPath = resource.getFullPath();
 		if (annotationPath == null) {
 			throw new IllegalArgumentException("Path to EEA root not found: " + eeaPath);
 		}
-
 		
 		List<NullabilityRecord> csvEntries = CsvAccessor.loadCsv(csvFilename);
 		this.numTotalCsvRecords = csvEntries.size();
@@ -66,27 +72,56 @@ public class CsvToEeaConverter {
 			
 			if (nr.hasInvocations()) {
 				double nullability = nr.nullability();
-				char annotation;
-				if (nullability > 0) {
+				Character annotation = null;
+				if (nullability >= minNullabilityNullable) {
 					annotation = ExternalAnnotationUtil.NULLABLE;
-				} else {
+					numNullable++;
+				} else if (nullability < maxNullabilityNonNull || maxNullabilityNonNull == 0 && nullability == maxNullabilityNonNull) {
 					annotation = ExternalAnnotationUtil.NONNULL;
+					numNonNull++;
+				} else {
+					Console.msg("Method [" + nr.getMethod() + "] has nullability=" + nullability + ", skipping it.");
+					numSkippedCsvRecords++;
 				}
-
 				
-				String fAffectedTypeName = nr.getClazz().replace('.', '/'); // "javassist/ClassMap";
-				IFile fAnnotationFile = getAnnotationFile(root, nr.getClazz(), annotationPath);
-				String fSelector = determineSelector(nr.getMethod());
-				
-				String fSignature = determineSignature(nr.getMethod(),  nr.getClazz()); // e.g. "(Ljava/lang/Object;)Ljava/lang/Object;";
-				String fAnnotatedSignature = annotateSignature(fSignature, annotation); // "L0java/lang/Object;";
-				
-				ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, MERGE_STRATEGY, null);
-				recordsWithInvocations++;
+				if (annotation != null) {
+					String fAffectedTypeName = nr.getClazz().replace('.', '/'); // "javassist/ClassMap";
+					IFile fAnnotationFile = getAnnotationFile(root, nr.getClazz(), annotationPath);
+					String fSelector = determineSelector(nr.getMethod());
+					
+					String fSignature = determineSignature(nr.getMethod(),  nr.getClazz()); // e.g. "(Ljava/lang/Object;)Ljava/lang/Object;";
+					String fAnnotatedSignature = annotateSignature(fSignature, annotation.charValue()); // "L0java/lang/Object;";
+					
+					ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, MERGE_STRATEGY, null);
+					recordsWithInvocations++;
+				}
+			} else {
 			}
 		}
 		
 		this.numProcessedCsvRecords = recordsWithInvocations;
+		
+		Console.msg("CsvToEeaConverter.execute() <--");
+	}
+	
+	public int getProcessedCsvRecords() {
+		return numProcessedCsvRecords;
+	}
+	
+	public int getTotalCsvRecords() {
+		return numTotalCsvRecords;
+	}
+	
+	public int getSkippedCsvRecords() {
+		return numSkippedCsvRecords;
+	}
+	
+	public int getNumNonNull() {
+		return numNonNull;
+	}
+	
+	public int getNumNullable() {
+		return numNullable;
 	}
 	
 	private String annotateSignature(String fSignature, char annotation) {
@@ -382,7 +417,7 @@ public class CsvToEeaConverter {
 			csvFilename = "inter-intra_small.csv";
 		}
 		
-		new CsvToEeaConverter().execute(csvFilename, "method-nullability-plugin/annot");
+		new CsvToEeaConverter(csvFilename, "method-nullability-plugin/annot", 0.1, 0.1).execute();
 //		new CsvToEeaConverter().runTests();
 	}
 }

@@ -21,12 +21,6 @@
       </persistent>
    </extension>
    <extension
-         point="org.eclipse.ui.startup">
-      <startup
-            class="ch.unibe.scg.methodnullabilityplugin.Startup">
-      </startup>
-   </extension>
-   <extension
          point="org.eclipse.ui.console.consoleFactories">
       <consoleFactory
             class="ch.unibe.scg.methodnullabilityplugin.Console"
@@ -40,22 +34,6 @@
          <service
                serviceClass="ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor"></service>
       </serviceFactory>
-   </extension>
-   <extension
-         point="org.eclipse.jdt.ui.cleanUps">
-      <cleanUp
-            class="ch.unibe.scg.methodnullabilityplugin.marker.NullabilitySaveAction"
-            id="method-nullability-plugin.cleanup.nullabilitysaveaction">
-      </cleanUp>
-      <cleanUpConfigurationUI
-            class="ch.unibe.scg.methodnullabilityplugin.marker.SaveActionUI"
-            cleanUpKind="saveAction"
-            name="Nullability Save Action">
-      </cleanUpConfigurationUI>
-      <cleanUpOptionsInitializer
-            class="ch.unibe.scg.methodnullabilityplugin.marker.SaveActionOptionsInitializer"
-            cleanUpKind="saveAction">
-      </cleanUpOptionsInitializer>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">

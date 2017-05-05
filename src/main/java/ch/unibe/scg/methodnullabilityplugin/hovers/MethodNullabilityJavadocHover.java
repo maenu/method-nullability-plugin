@@ -17,7 +17,7 @@ import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityInfo;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
 /**
- * Extension of {@link JavadocHover}, adding a line of nullability information.
+ * Extension of {@link JavadocHover}, adding a line of nullability information to the javadoc of a method.
  */
 public class MethodNullabilityJavadocHover extends JavadocHover {
 
@@ -33,9 +33,11 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 	
 	private MethodNullabilityAccessor methodNullabilityAccessor;
 	
+	@SuppressWarnings("null")
 	public MethodNullabilityJavadocHover() {
 		super();
-		this.methodNullabilityAccessor = PlatformUI.getWorkbench().getService(MethodNullabilityAccessor.class);
+		this.methodNullabilityAccessor = PlatformUI.getWorkbench().getService(
+				MethodNullabilityAccessor.class);
 	}
 
 	@Override

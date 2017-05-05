@@ -33,10 +33,10 @@ public class CsvToEeaConverter {
 		new CsvToEeaConverter().runTests();
 	}
 	
-	public void convert(String csvFilename) throws Exception {
-		if (csvFilename == null) {
-			csvFilename = "classpath:inter-intra_small.csv";
-		}
+	public void convert(String csvFilename, String eeaPath) throws Exception {
+//		if (csvFilename == null) {
+//			csvFilename = "classpath:inter-intra_small.csv";
+//		}
 		List<NullabilityRecord> csvEntries = CsvAccessor.loadCsv(csvFilename);
 		System.out.println("read " + csvEntries.size() + " entries...");
 		
@@ -45,8 +45,12 @@ public class CsvToEeaConverter {
 //		ExternalAnnotationProvider eap = new ExternalAnnotationProvider(input, typeName);
 		
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		String annotationPathStr = "annot";
-		IResource resource = root.findMember("method-nullability-plugin-test/" + annotationPathStr);
+//		String annotationPathStr = "annot";
+//		IResource resource = root.findMember("method-nullability-plugin-test/" + annotationPathStr);
+		IResource resource = root.findMember(eeaPath);
+		if (resource == null) {
+			throw new IllegalArgumentException("eeaPath not found: " + eeaPath);
+		}
 //		
 //		IProject project = root.getProject();
 //		IJavaProject javaProject = JavaCore.create(project);
@@ -267,7 +271,10 @@ public class CsvToEeaConverter {
 //		}
 
 		for (int i = 0; i < targetParameters.length; i++) {
-			buffer.append(getTargetParameterSignature(targetParameters[i]));
+			String p = targetParameters[i];
+			if (p != null && !p.isEmpty()) {
+				buffer.append(getTargetParameterSignature(targetParameters[i]));
+			}
 		}
 		
 //		if (needSynthetics) {
@@ -332,6 +339,8 @@ public class CsvToEeaConverter {
 				return TypeBinding.BYTE.constantPoolName();
 			} else if (targetParameter.equals("int")) {
 				return TypeBinding.INT.constantPoolName();
+			} else {
+				throw new IllegalArgumentException("unrecognized targetParameter=" + targetParameter);
 			}
 		}
 		

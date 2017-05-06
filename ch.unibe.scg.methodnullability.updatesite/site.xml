@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/ch.unibe.scg.methodnullability.feature_1.0.0.201705061335.jar" id="ch.unibe.scg.methodnullability.feature" version="1.0.0.201705061335">
+      <category name="ch.unibe.methodnullability"/>
+   </feature>
+   <category-def name="ch.unibe.methodnullability" label="Method Nullability Plugin">
+      <description>
+         Eclipse plugin that augments the method documentation with nullability
+information and automatically generates nullness annotations
+accordingly to assist Eclipse’s null analysis.
+      </description>
+   </category-def>
+</site>

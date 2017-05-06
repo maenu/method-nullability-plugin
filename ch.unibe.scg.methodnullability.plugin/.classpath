@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry exported="true" kind="lib" path="lib/sqlite-jdbc-3.15.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-csv-1.4.jar" sourcepath="C:/Users/lukaszbinden/Desktop/UniFr/Courses/Seminar Software Construction/tmp/commons-csv-1.4-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-20.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/ui/text/java/hover/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jface/internal/text/html/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/ui/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/corext/refactoring/util/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/core/CompilationUnit"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/compiler/lookup/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/compiler/classfmt/**"/>
+			<accessrule kind="accessible" pattern="org/eclipse/jdt/internal/core/util/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/javassist.jar" sourcepath="C:/Users/lukaszbinden/Desktop/UniFr/Courses/Seminar Software Construction/tmp/jboss-javassist-javassist-6a3ed31/src/main">
+		<attributes>
+			<attribute name="source_encoding" value="ISO-8859-1"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/h2-1.4.195.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -114,8 +114,18 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 		    
 		  //register listener for the selection event
 	    enter.addSelectionListener(new SelectionAdapter() {
+	    	
 	        @Override
 	        public void widgetSelected(SelectionEvent e) {
+	        	enter.setEnabled(false);
+	        	try {
+	        		generate();
+	        	} finally {
+	        		enter.setEnabled(true);
+	        	}
+	        }
+	        
+	        private void generate() {
 	        	String csvPath = csvText.getText();
 	        	String eeaPath = eeaText.getText();
 				if (csvPath == null || csvPath.isEmpty() || eeaPath == null || eeaPath.isEmpty()) {
@@ -193,7 +203,6 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	                messageDialog.open();
 	                return;
 				}
-				
 	        }
 	    });
 		

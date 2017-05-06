@@ -56,7 +56,7 @@ public class CsvToEeaConverter {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(eeaPath);
 		if (resource == null) {
-			throw new IllegalArgumentException("EEA root must be in workspace.");
+			throw new IllegalArgumentException("EEA root must be a workspace location.");
 		}
 		IPath annotationPath = resource.getFullPath();
 		if (annotationPath == null) {

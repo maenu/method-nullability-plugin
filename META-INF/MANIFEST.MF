@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Nullable Method Detection
 Bundle-SymbolicName: method-nullability-plugin;singleton:=true
-Bundle-Version: 0.0.1
+Bundle-Version: 1.0.0
 Require-Bundle: org.eclipse.jdt.core;bundle-version="3.12.1",
  org.eclipse.ui.console,
  org.eclipse.jdt.annotation;bundle-version="2.1.0",
@@ -20,3 +20,4 @@ Bundle-ClassPath: .,
  lib/h2-1.4.195.jar
 Bundle-Activator: ch.unibe.scg.methodnullabilityplugin.Activator
 Bundle-ActivationPolicy: lazy
+Bundle-Vendor: scg.unibe.ch

@@ -1,6 +1,6 @@
 # method-nullability-plugin
 
-Eclipse plugin that adds a hover on methods showing method nullability.
+Eclipse plugin that augments the method documentation with nullability information and automatically generates nullness annotations accordingly to assist Eclipse’s null analysis.
 
 ## Development setup
 
@@ -49,8 +49,3 @@ Test project to import into test workspace.
 #### method-nullability.db
 
 SQLite database, contains indexes for method nullability lookup.
-
-## Possible issues
-
-So far only tested on OS X, might have path seperator issues on other platforms.
-If so, try to replace `/` with `File.separator` to make it work.

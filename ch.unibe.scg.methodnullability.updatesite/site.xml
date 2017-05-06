@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/ch.unibe.scg.methodnullability.feature_1.0.0.201705062009.jar" id="ch.unibe.scg.methodnullability.feature" version="1.0.0.201705062009">
+   <feature url="features/ch.unibe.scg.methodnullability.feature_1.0.0.201705062024.jar" id="ch.unibe.scg.methodnullability.feature" version="1.0.0.201705062024">
       <category name="ch.unibe.methodnullability"/>
    </feature>
    <category-def name="ch.unibe.methodnullability" label="Method Nullability Plugin">

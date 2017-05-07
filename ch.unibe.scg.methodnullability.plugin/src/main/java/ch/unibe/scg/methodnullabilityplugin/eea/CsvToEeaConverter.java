@@ -24,6 +24,7 @@ public class CsvToEeaConverter {
 	
 	private String csvFilename;
 	private String eeaPath;
+	private String artifactIds;
 	private double maxNullabilityNonNull;
 	private double minNullabilityNullable;
 
@@ -32,10 +33,12 @@ public class CsvToEeaConverter {
 	private int numSkippedCsvRecords = 0;
 	private int numNonNull = 0;
 	private int numNullable = 0;
+
 	
-	public CsvToEeaConverter(String csvFilename, String eeaPath, double maxNullabilityNonNull, double minNullabilityNullable) {
+	public CsvToEeaConverter(String csvFilename, String eeaPath, String artifactIds, double maxNullabilityNonNull, double minNullabilityNullable) {
 		this.csvFilename = csvFilename;
 		this.eeaPath = eeaPath;
+		this.artifactIds = artifactIds;
 		this.maxNullabilityNonNull = maxNullabilityNonNull;
 		this.minNullabilityNullable = minNullabilityNullable;
 		// plausibilize
@@ -67,35 +70,44 @@ public class CsvToEeaConverter {
 		this.numTotalCsvRecords = csvEntries.size();
 		Console.msg("read " + csvEntries.size() + " entries...");
 		
+		int currentRecord = 0;
 		int recordsWithInvocations = 0;
 		for (NullabilityRecord nr : csvEntries) {
-			
-			if (nr.hasInvocations()) {
-				double nullability = nr.nullability();
-				Character annotation = null;
-				if (nullability >= minNullabilityNullable) {
-					annotation = ExternalAnnotationUtil.NULLABLE;
-					numNullable++;
-				} else if (nullability < maxNullabilityNonNull || maxNullabilityNonNull == 0 && nullability == maxNullabilityNonNull) {
-					annotation = ExternalAnnotationUtil.NONNULL;
-					numNonNull++;
-				} else {
-					Console.msg("Method [" + nr.getMethod() + "] has nullability=" + nullability + ", skipping it.");
-					numSkippedCsvRecords++;
-				}
-				
-				if (annotation != null) {
-					String fAffectedTypeName = nr.getClazz().replace('.', '/'); // "javassist/ClassMap";
-					IFile fAnnotationFile = getAnnotationFile(root, nr.getClazz(), annotationPath);
-					String fSelector = determineSelector(nr.getMethod());
+			currentRecord++;
+			if (artifactIds == null || artifactIds.isEmpty() || artifactIds.contains(nr.getArtifactId())) {
+				if (nr.hasInvocations()) {
+					double nullability = nr.nullability();
+					Character annotation = null;
+					if (nullability >= minNullabilityNullable) {
+						annotation = ExternalAnnotationUtil.NULLABLE;
+						numNullable++;
+					} else if (nullability < maxNullabilityNonNull || maxNullabilityNonNull == 0 && nullability == maxNullabilityNonNull) {
+						annotation = ExternalAnnotationUtil.NONNULL;
+						numNonNull++;
+					} else {
+						Console.msg("Method [" + nr.getMethod() + "] has nullability=" + nullability + ", skipping it.");
+						numSkippedCsvRecords++;
+					}
 					
-					String fSignature = determineSignature(nr.getMethod(),  nr.getClazz()); // e.g. "(Ljava/lang/Object;)Ljava/lang/Object;";
-					String fAnnotatedSignature = annotateSignature(fSignature, annotation.charValue()); // "L0java/lang/Object;";
-					
-					ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, MERGE_STRATEGY, null);
-					recordsWithInvocations++;
+					if (annotation != null) {
+						IFile fAnnotationFile = null;
+						try {
+							String fAffectedTypeName = nr.getClazz().replace('.', '/'); // "javassist/ClassMap";
+							fAnnotationFile = getAnnotationFile(root, nr.getClazz(), annotationPath);
+							String fSelector = determineSelector(nr.getMethod());
+							
+							String fSignature = determineSignature(nr.getMethod(),  nr.getClazz()); // e.g. "(Ljava/lang/Object;)Ljava/lang/Object;";
+							String fAnnotatedSignature = annotateSignature(fSignature, annotation.charValue()); // "L0java/lang/Object;";
+							
+							ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, MERGE_STRATEGY, null);
+							recordsWithInvocations++;
+						} catch (Exception re) {
+							Console.err("execute failed for [" + nr + "], currentRecord=" + currentRecord, re);
+							Console.err("fAnnotationFile=" + fAnnotationFile);
+							throw re;
+						}
+					}
 				}
-			} else {
 			}
 		}
 		
@@ -301,6 +313,8 @@ public class CsvToEeaConverter {
 		char[] constantPoolName = constantPoolName(targetParameter);
 		if (constantPoolName.length == 1) {
 			return constantPoolName;
+		} else if (targetParameter.replaceAll(" ", "").contains("[]")) {
+			return constantPoolName;
 		}
 		char[] signature = CharOperation.concat('L', constantPoolName, ';');
 		return signature;
@@ -308,6 +322,7 @@ public class CsvToEeaConverter {
 
 	// ReferenceBinding.constantPoolName()
 	private char[] constantPoolName(String targetParameter) {
+		targetParameter = targetParameter.trim();
 		String[] split = targetParameter.split("\\.");
 		if (split.length == 1) {
 			// check BaseTypeBinding: cf. TypeBinding
@@ -327,6 +342,14 @@ public class CsvToEeaConverter {
 				return TypeBinding.BYTE.constantPoolName();
 			} else if (targetParameter.equals("int")) {
 				return TypeBinding.INT.constantPoolName();
+			} else if (targetParameter.replaceAll(" ", "").contains("[]")) {
+				int dimensions = countSB(targetParameter);
+				// taken from ArrayBinding.constantPoolName()
+				char[] brackets = new char[dimensions];
+				for (int i = dimensions - 1; i >= 0; i--) brackets[i] = '[';
+				String leafTypeStr = targetParameter.substring(0, targetParameter.indexOf("["));
+				char[] leafType = constantPoolName(leafTypeStr);
+				return CharOperation.concat(brackets, leafType);
 			} else {
 				throw new IllegalArgumentException("unrecognized targetParameter=" + targetParameter);
 			}
@@ -357,6 +380,15 @@ public class CsvToEeaConverter {
 //		if (!targetType.exists())
 //			return null;
 //
+		
+		// ensure package name is all lowercase
+		int packageIndex = qualifiedTypeName.lastIndexOf(".");
+		if (packageIndex >= 0) {
+			String tmp = qualifiedTypeName.substring(0, packageIndex);
+			tmp = tmp.toLowerCase() + qualifiedTypeName.substring(packageIndex);
+			qualifiedTypeName = tmp;
+		}
+		
 		String binaryTypeName = qualifiedTypeName.replace('.', '/');
 //		
 //		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) targetType.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
@@ -398,6 +430,17 @@ public class CsvToEeaConverter {
 		clazz = "org.apache.http.client.HttpClient";
 		expected = "(Lorg/apache/http/client/methods/HttpUriRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;";
 		runTest(method, clazz, expected);
+		
+		method = "char[] getTextCharacters()";
+		clazz = "javax.xml.stream.XMLStreamReader";
+		expected = "()[C";
+		runTest(method, clazz, expected);
+		
+		method = "char[][] getTextCharacters()";
+		clazz = "javax.xml.stream.XMLStreamReader";
+		expected = "()[[C";
+		runTest(method, clazz, expected);
+		
 	}
 
 	private void runTest(String method, String clazz, String expected) {
@@ -409,6 +452,13 @@ public class CsvToEeaConverter {
 		}
 	}
 	
+	// count pairs of square brackets
+	private int countSB(String s) {
+		s = s.replaceAll(" ", "");
+		int diff = s.length() - s.replace("[]", "").length();
+		return diff / 2;
+	}
+	
 	public static void main(String[] args) throws Exception {
 		String csvFilename;
 		if (args.length == 1) {
@@ -417,7 +467,7 @@ public class CsvToEeaConverter {
 			csvFilename = "inter-intra_small.csv";
 		}
 		
-		new CsvToEeaConverter(csvFilename, "method-nullability-plugin/annot", 0.1, 0.1).execute();
-//		new CsvToEeaConverter().runTests();
+		new CsvToEeaConverter(csvFilename, "method-nullability-plugin/annot", "", 0.1, 0.1).execute();
+//		new CsvToEeaConverter("","","",0,0.5).runTests();
 	}
 }

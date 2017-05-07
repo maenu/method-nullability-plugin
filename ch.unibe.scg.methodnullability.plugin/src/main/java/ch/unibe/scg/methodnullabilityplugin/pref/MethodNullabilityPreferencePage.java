@@ -24,6 +24,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
+import ch.unibe.scg.methodnullabilityplugin.Console;
 import ch.unibe.scg.methodnullabilityplugin.eea.CsvToEeaConverter;
 
 public class MethodNullabilityPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
@@ -95,6 +96,15 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	    gridData.horizontalSpan = 5;
 	    gridData.grabExcessHorizontalSpace = true;
 	    eeaText.setLayoutData(gridData);
+	    
+	    Label aIdLabel = new Label(group2, SWT.NULL);
+	    aIdLabel.setText("List of artifactId: ");
+
+	    Text aiText = new Text(group2, SWT.SINGLE | SWT.BORDER);
+	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+	    gridData.horizontalSpan = 5;
+	    gridData.grabExcessHorizontalSpace = true;
+	    aiText.setLayoutData(gridData);
 	
 	    Label maxNullabilityNonNullLabel = new Label(group2, SWT.NULL);
 	    maxNullabilityNonNullLabel.setText("Max. Nullability for @NonNull: ");
@@ -198,13 +208,14 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 				
 				try {
 					
-					CsvToEeaConverter converter = new CsvToEeaConverter(csvPath, eeaPath, maxNonNull, minNullable);
+					CsvToEeaConverter converter = new CsvToEeaConverter(csvPath, eeaPath, aiText.getText(), maxNonNull, minNullable);
 					BusyIndicator.showWhile(Display.getDefault(), new Runnable(){
 					    @Override
 						public void run(){
 					    	try {
 								converter.execute();
 							} catch (Exception e) {
+								Console.err(e);
 								throw new RuntimeException(e.getMessage(), e);
 							}
 					    }

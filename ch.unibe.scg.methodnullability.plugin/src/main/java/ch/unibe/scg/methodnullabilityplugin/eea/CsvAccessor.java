@@ -109,5 +109,13 @@ public class CsvAccessor {
 		double nullability() {
 			return (double) checks / invocations;
 		}
+
+		@Override
+		public String toString() {
+			return "NullabilityRecord [groupId=" + groupId + ", artifactId=" + artifactId + ", clazz=" + clazz
+					+ ", method=" + method + ", checks=" + checks + ", invocations=" + invocations + "]";
+		}
 	}
+    
+    
 }

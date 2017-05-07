@@ -17,10 +17,12 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 import ch.unibe.scg.methodnullabilityplugin.eea.CsvToEeaConverter;
 
@@ -40,41 +42,64 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 		
 		Composite newParent = new Composite(parent, SWT.NONE);
 		
-		GridLayout gridLayout = new GridLayout(6, false);
-	    gridLayout.verticalSpacing = 8;
-	    newParent.setLayout(gridLayout);
+		GridLayout gridLayout1 = new GridLayout(6, false);
+	    gridLayout1.verticalSpacing = 8;
+	    newParent.setLayout(gridLayout1);
+		
+		Group group1 = new Group(newParent, SWT.NONE);
+	    group1.setText("Configuration");
+	    group1.setFont(newParent.getFont());
+	    group1.setLayout(gridLayout1);
+	    GridData gd1= new GridData(GridData.FILL_HORIZONTAL);
+		gd1.horizontalSpan= 6;
+		gd1.widthHint= SWT.DEFAULT;
+		group1.setLayoutData(gd1);
+		
+		Link link = new Link(group1, SWT.NONE);
+		link.setText("Enable annotation-based null analysis <A>here</A>.\n");
+		link.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IWorkbenchPreferenceContainer container= (IWorkbenchPreferenceContainer) getContainer();
+				container.openPage("org.eclipse.jdt.ui.preferences.ProblemSeveritiesPreferencePage", null);
+			}
+		});
+		
+		GridLayout gridLayout2 = new GridLayout(6, false);
+	    gridLayout2.verticalSpacing = 8;
+	    newParent.setLayout(gridLayout2);
 
-	    Group group = new Group(newParent, SWT.NONE);
-	    group.setText("Generate Eclipse External Annotations (EEA)");
-	    group.setFont(newParent.getFont());
-	    group.setLayout(gridLayout);
+	    Group group2 = new Group(newParent, SWT.NONE);
+	    group2.setText("Generate Eclipse External Annotations (EEA)");
+	    group2.setFont(newParent.getFont());
+	    group2.setLayout(gridLayout2);
 	    GridData gd= new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan= 6;
 		gd.widthHint= SWT.DEFAULT;
-		group.setLayoutData(gd);
+		group2.setLayoutData(gd);
 	    
-	    Label csvLabel = new Label(group, SWT.NULL);
+	    Label csvLabel = new Label(group2, SWT.NULL);
 	    csvLabel.setText("Path to CSV file: ");
 
-	    Text csvText = new Text(group, SWT.SINGLE | SWT.BORDER);
+	    Text csvText = new Text(group2, SWT.SINGLE | SWT.BORDER);
 	    GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 	    gridData.horizontalSpan = 5;
 	    gridData.grabExcessHorizontalSpace = true;
 	    csvText.setLayoutData(gridData);
 
-	    Label eeaLabel = new Label(group, SWT.NULL);
+	    Label eeaLabel = new Label(group2, SWT.NULL);
 	    eeaLabel.setText("Path to EEA root: ");
 
-	    Text eeaText = new Text(group, SWT.SINGLE | SWT.BORDER);
+	    Text eeaText = new Text(group2, SWT.SINGLE | SWT.BORDER);
 	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 	    gridData.horizontalSpan = 5;
 	    gridData.grabExcessHorizontalSpace = true;
 	    eeaText.setLayoutData(gridData);
 	
-	    Label maxNullabilityNonNullLabel = new Label(group, SWT.NULL);
+	    Label maxNullabilityNonNullLabel = new Label(group2, SWT.NULL);
 	    maxNullabilityNonNullLabel.setText("Max. Nullability for @NonNull: ");
 
-	    Text maxNullabilityNonNullText = new Text(group, SWT.SINGLE | SWT.BORDER);
+	    Text maxNullabilityNonNullText = new Text(group2, SWT.SINGLE | SWT.BORDER);
 	    maxNullabilityNonNullText.setText("0.1");
 	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 	    gridData.horizontalSpan = 1;
@@ -82,16 +107,16 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	    maxNullabilityNonNullText.setLayoutData(gridData);
 	    addDecimalNumberVerifyListener(maxNullabilityNonNullText);
 	    
-	    Label maxNullabilityNonNullLabelFill = new Label(group, SWT.NULL);
+	    Label maxNullabilityNonNullLabelFill = new Label(group2, SWT.NULL);
 	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 	    gridData.horizontalSpan = 4;
 	    gridData.grabExcessHorizontalSpace = true;
 	    maxNullabilityNonNullLabelFill.setLayoutData(gridData);
 	    
-	    Label minNullabilityNullableLabel = new Label(group, SWT.NULL);
+	    Label minNullabilityNullableLabel = new Label(group2, SWT.NULL);
 	    minNullabilityNullableLabel.setText("Min. Nullability for @Nullable: ");
 
-	    Text minNullabilityNullableText = new Text(group, SWT.SINGLE | SWT.BORDER);
+	    Text minNullabilityNullableText = new Text(group2, SWT.SINGLE | SWT.BORDER);
 	    minNullabilityNullableText.setText("0.2");
 	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 	    gridData.horizontalSpan = 1;
@@ -99,20 +124,19 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	    minNullabilityNullableText.setLayoutData(gridData);
 	    addDecimalNumberVerifyListener(minNullabilityNullableText);
 	    
-	    Label minNullabilityNullableLabelFill = new Label(group, SWT.NULL);
+	    Label minNullabilityNullableLabelFill = new Label(group2, SWT.NULL);
 	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 	    gridData.horizontalSpan = 4;
 	    gridData.grabExcessHorizontalSpace = true;
 	    minNullabilityNullableLabelFill.setLayoutData(gridData);
 	    
-	    Button enter = new Button(group, SWT.PUSH);
+	    Button enter = new Button(group2, SWT.PUSH);
 	    enter.setText("Generate");
 	    gridData = new GridData();
 	    gridData.horizontalSpan = 6;
 	    gridData.horizontalAlignment = GridData.BEGINNING;
 	    enter.setLayoutData(gridData);
-		    
-		  //register listener for the selection event
+		//register listener for the selection event
 	    enter.addSelectionListener(new SelectionAdapter() {
 	    	
 	        @Override

@@ -54,7 +54,7 @@ public class Database {
 	public Database() throws SQLException, IOException {
 		this.declaringRootClassFinder = new DeclaringRootTypesFinder();
 		URL url = FileLocator.toFileURL(
-				Platform.getBundle("method-nullability-plugin").getEntry("src/main/resources/method-nullability.db"));
+				Platform.getBundle("ch.unibe.scg.methodnullability.plugin").getEntry("src/main/resources/method-nullability.db"));
 		this.connection = DriverManager.getConnection("jdbc:sqlite:" + url.getFile());
 	}
 

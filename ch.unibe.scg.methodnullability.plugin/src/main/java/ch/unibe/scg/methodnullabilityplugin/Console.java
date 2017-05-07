@@ -55,7 +55,7 @@ public class Console implements IConsoleFactory {
 		err(msg);
 	}
 	
-	static private final String CONSOLE_NAME = "EduRide Console";
+	static private final String CONSOLE_NAME = "Method Nullability Plugin Console";
 	static private Device device = Display.getCurrent();
 	static private final Color RED = new Color(device, 255, 0, 0);
 	static private final Color BLACK = new Color(device, 0, 0, 0);

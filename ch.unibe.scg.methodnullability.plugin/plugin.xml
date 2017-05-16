@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.jdt.ui.javaEditorTextHovers">
+      <hover
+            activate="true"
+            class="ch.unibe.scg.methodnullabilityplugin.hovers.MethodNullabilityJavadocHover"
+            id="ch.unibe.scg.methodnullabilityplugin.hover">
+      </hover>
+   </extension>
+   <extension
+         point="org.eclipse.ui.console.consoleFactories">
+      <consoleFactory
+            class="ch.unibe.scg.methodnullabilityplugin.Console"
+            label="nullability console">
+      </consoleFactory>
+   </extension>
+   <extension
+         point="org.eclipse.ui.services">
+      <serviceFactory
+            factoryClass="ch.unibe.scg.methodnullabilityplugin.MethodNullabilityServiceFactory">
+         <service
+               serviceClass="ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor"></service>
+      </serviceFactory>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="ch.unibe.scg.methodnullabilityplugin.pref.MethodNullabilityPreferencePage"
+            id="ch.unibe.scg.methodnullability.prefs"
+            name="Method Nullability">
+      </page>
+   </extension>
+</plugin>

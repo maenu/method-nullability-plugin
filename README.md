@@ -10,7 +10,11 @@ To install the plugin in any Eclipse IDE for normal use, proceed as follows:
 * After the installation, go to Windows -> Preferences -> Method Nullability to configure the plugin and generate EEA files.
 
 ## Plugin configuration
-TO BE DEFINED.
+Once the plugin is installed, the following configuration has to be made:
+* Go to Windows -> Preferences -> Method Nullability.
+* Enable Eclipse annotation-based null analysis in menu 'Errors/Warnings'.
+* Generate EEA files and javadoc database: Specify a CSV file (to start with, use sample 'inter-intra_small.csv') and a EEA destination folder (workspace location). Optionally specify an artifactId (e.g. httpclient) if you want to only generate EEA files for a specific set of libraries.
+* Modify the max. and min. nullability thresholds as you prefer.
 
 ## Development and Test setup
 To setup the plugin for development and test, proceed as follows:
@@ -33,6 +37,9 @@ Furthermore, the following files are included:
 Open with the Plugin-Manifest Editor.
 Declares the used extension points and the provided extensions, as well as the dependencies to other plugins.
 Sets the files available at the plugin run-time in the build properties, i.e., the database and libraries.
+
+##### inter-intra_small.csv
+Sample nullability data to use as input to generate EEA files and javadoc database. 
 
 ##### src/main/resources/
 

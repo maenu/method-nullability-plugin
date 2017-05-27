@@ -78,35 +78,35 @@ public class CsvAccessor {
 			this.invocations = i;
 		}
 
-		String getGroupId() {
+		public String getGroupId() {
 			return groupId;
 		}
 
-		String getArtifactId() {
+		public String getArtifactId() {
 			return artifactId;
 		}
 
-		String getClazz() {
+		public String getClazz() {
 			return clazz;
 		}
 
-		String getMethod() {
+		public String getMethod() {
 			return method;
 		}
 
-		int getChecks() {
+		public int getChecks() {
 			return checks;
 		}
 
-		int getInvocations() {
+		public int getInvocations() {
 			return invocations;
 		}
 		
-		boolean hasInvocations() {
+		public boolean hasInvocations() {
 			return invocations > 0;
 		}
 		
-		double nullability() {
+		public double nullability() {
 			return (double) checks / invocations;
 		}
 

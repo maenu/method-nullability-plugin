@@ -112,7 +112,7 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 	 * @return A HTML string with the ratio and explicit checks and invocations.
 	 */
 	private String format(MethodNullabilityInfo match) {
-		if (match.hasInvocations()) {
+		if (match != null && match.hasInvocations()) {
 			return String.format(NULLABILITY_INFO, 100 * match.nullability(), match.getChecks(), match.getInvocations());
 		}
 		return NULLABILITY_NOT_AVAILABLE;

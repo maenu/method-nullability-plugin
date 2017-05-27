@@ -17,7 +17,7 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin = null;
 	
-	static BundleContext getContext() {
+	public static BundleContext getContext() {
 		return context;
 	}
 	

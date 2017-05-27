@@ -17,14 +17,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 
 import com.google.common.hash.Hashing;
+
+import ch.unibe.scg.methodnullabilityplugin.Console;
 
 public class Database {
 
@@ -51,11 +51,10 @@ public class Database {
 	private DeclaringRootTypesFinder declaringRootClassFinder;
 	private Connection connection;
 
-	public Database() throws SQLException, IOException {
+	public Database(URL databaseUrl) throws SQLException, IOException {
 		this.declaringRootClassFinder = new DeclaringRootTypesFinder();
-		URL url = FileLocator.toFileURL(
-				Platform.getBundle("ch.unibe.scg.methodnullability.plugin").getEntry("src/main/resources/method-nullability.db"));
-		this.connection = DriverManager.getConnection("jdbc:sqlite:" + url.getFile());
+		
+		this.connection = DriverManager.getConnection("jdbc:sqlite:" + databaseUrl.getFile());
 	}
 
 	/**
@@ -81,22 +80,22 @@ public class Database {
 
 	private Result search(Map<String, Artifact> classes, String method) {
 		Map<String, List<String>> hashes = new HashMap<>();
-		hashes.put(INDEX_EXACT, new ArrayList<>());
+		//hashes.put(INDEX_EXACT, new ArrayList<>());
 		hashes.put(INDEX_ANY_VERSION, new ArrayList<>());
 		hashes.put(INDEX_ANY_ARTIFACT, new ArrayList<>());
 		classes.entrySet().stream().forEach(entry -> {
 			String clazz = entry.getKey();
 			Artifact artifact = entry.getValue();
-			String hashExact = hash(artifact.groupId, artifact.artifactId, artifact.version, clazz, method);
+			//String hashExact = hash(artifact.groupId, artifact.artifactId, /*artifact.version,*/ clazz, method);
 			String hashAnyVersion = hash(artifact.groupId, artifact.artifactId, clazz, method);
 			String hashAnyArtifact = hash(clazz, method);
-			hashes.get(INDEX_EXACT).add(hashExact);
+			//hashes.get(INDEX_EXACT).add(hashExact);
 			hashes.get(INDEX_ANY_VERSION).add(hashAnyVersion);
 			hashes.get(INDEX_ANY_ARTIFACT).add(hashAnyArtifact);
 		});
 		Optional<Match> matchAnyArtifact = this.match(INDEX_ANY_ARTIFACT, hashes.get(INDEX_ANY_ARTIFACT));
 		Optional<Match> matchAnyVersion = this.match(INDEX_ANY_VERSION, hashes.get(INDEX_ANY_VERSION));
-		Optional<Match> matchExact = this.match(INDEX_EXACT, hashes.get(INDEX_EXACT));
+		Optional<Match> matchExact = Optional.empty(); // this.match(INDEX_EXACT, hashes.get(INDEX_EXACT));
 		return new Result(matchExact.orElse(new Match(0, 0)), matchAnyVersion.orElse(new Match(0, 0)),
 				matchAnyArtifact.orElse(new Match(0, 0)));
 	}
@@ -104,13 +103,18 @@ public class Database {
 	private Optional<Match> match(String index, List<String> hashes) {
 		String hashStrings = hashes.stream().map(hash -> String.format("'%s'", hash)).collect(Collectors.joining(", "));
 		try {
-			Statement statement = this.connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(
-					"select sum(checks), sum(invocations) from " + index + " where hash in (" + hashStrings + ")");
-			if (resultSet.next()) {
-				return Optional.of(new Match(resultSet.getInt(1), resultSet.getInt(2)));
+			try (Statement statement = this.connection.createStatement()) {
+				ResultSet existsDB = statement.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + INDEX_ANY_ARTIFACT + "';");
+				if (existsDB.getInt(1) == 0) {
+					return Optional.empty();
+				}
+				ResultSet resultSet = statement.executeQuery(
+						"select sum(checks), sum(invocations) from " + index + " where hash in (" + hashStrings + ")");
+				if (resultSet.next()) {
+					return Optional.of(new Match(resultSet.getInt(1), resultSet.getInt(2)));
+				}
+				return Optional.empty();
 			}
-			return Optional.empty();
 		} catch (SQLException exception) {
 			throw new RuntimeException(exception);
 		}
@@ -129,6 +133,15 @@ public class Database {
 			return new Artifact(groupId, artifactId, version);
 		}
 		return ARTIFACT_NO_ARTIFACT_FOUND;
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		try {
+			connection.close();
+		} catch (RuntimeException re) {
+			Console.msg(re);
+		}
 	}
 
 }

@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -71,7 +72,7 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	    newParent.setLayout(gridLayout2);
 
 	    Group group2 = new Group(newParent, SWT.NONE);
-	    group2.setText("Generate Eclipse External Annotations (EEA)");
+	    group2.setText("Generate Javadoc and Eclipse External Annotations (EEA)");
 	    group2.setFont(newParent.getFont());
 	    group2.setLayout(gridLayout2);
 	    GridData gd= new GridData(GridData.FILL_HORIZONTAL);
@@ -84,10 +85,47 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 
 	    Text csvText = new Text(group2, SWT.SINGLE | SWT.BORDER);
 	    GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-	    gridData.horizontalSpan = 5;
+	    gridData.horizontalSpan = 4;
 	    gridData.grabExcessHorizontalSpace = true;
 	    csvText.setLayoutData(gridData);
+	    
+	    Button fileDialogButton = new Button(group2, SWT.PUSH);
+	    fileDialogButton.setText("...");
+	    fileDialogButton.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        		FileDialog fileDialog = new FileDialog(group2.getShell(), SWT.OPEN);
+            	fileDialog.setFilterExtensions(new String[] {"*.csv"});
+            	String name = fileDialog.open();
+            	if (name != null && !name.isEmpty()) {
+            		csvText.setText(name);
+            	}
+        	}
+		});
 
+	    new Label(group2, SWT.NULL); // dummy
+	    
+	    Label eeaCbLabel = new Label(group2, SWT.NULL);
+	    eeaCbLabel.setText("EEA: ");
+	    
+	    Button eeaCb = new Button(group2, SWT.CHECK);
+	    eeaCb.setSelection(true);
+	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+	    gridData.horizontalSpan = 1;
+	    gridData.grabExcessHorizontalSpace = false;	    
+	    eeaCb.setLayoutData(gridData);
+	    
+	    Label javadocCbLabel = new Label(group2, SWT.NULL);
+	    javadocCbLabel.setText("Javadoc: ");
+	    
+	    Button javadocCb = new Button(group2, SWT.CHECK);
+	    javadocCb.setSelection(true);
+	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+	    gridData.horizontalSpan = 2;
+	    gridData.grabExcessHorizontalSpace = true;
+	    javadocCb.setLayoutData(gridData);
+	    
+	    
 	    Label eeaLabel = new Label(group2, SWT.NULL);
 	    eeaLabel.setText("Path to EEA root: ");
 
@@ -146,6 +184,32 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	    gridData.horizontalSpan = 6;
 	    gridData.horizontalAlignment = GridData.BEGINNING;
 	    enter.setLayoutData(gridData);
+	    
+	    eeaCb.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean newSelection = ((Button) e.getSource()).getSelection();
+				eeaText.setEnabled(newSelection);
+				if (!javadocCb.getSelection() && !newSelection) {
+					enter.setEnabled(false);
+				} else {
+					enter.setEnabled(true);
+				}
+			}
+		});
+	    javadocCb.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean newSelection = ((Button) e.getSource()).getSelection();
+				if (!eeaCb.getSelection() && !newSelection) {
+					enter.setEnabled(false);
+				} else {
+					enter.setEnabled(true);
+				}
+			}
+		});
+	    
+	    
 		//register listener for the selection event
 	    enter.addSelectionListener(new SelectionAdapter() {
 	    	
@@ -162,7 +226,7 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 	        private void generate() {
 	        	String csvPath = csvText.getText();
 	        	String eeaPath = eeaText.getText();
-				if (csvPath == null || csvPath.isEmpty() || eeaPath == null || eeaPath.isEmpty()) {
+				if (csvPath == null || csvPath.isEmpty() || (eeaCb.getSelection() && (eeaPath == null || eeaPath.isEmpty()))) {
 					MessageBox messageDialog = new MessageBox(newParent.getShell(), SWT.ERROR);
 	                messageDialog.setText("Error");
 	                messageDialog.setMessage("Both CSV and EEA paths are required.");
@@ -208,7 +272,9 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 				
 				try {
 					
-					CsvToEeaConverter converter = new CsvToEeaConverter(csvPath, eeaPath, aiText.getText(), maxNonNull, minNullable);
+					CsvToEeaConverter converter = new CsvToEeaConverter(csvPath, 
+							javadocCb.getSelection(), eeaCb.getSelection(), 
+							eeaPath, aiText.getText(), maxNonNull, minNullable);
 					BusyIndicator.showWhile(Display.getDefault(), new Runnable(){
 					    @Override
 						public void run(){
@@ -222,13 +288,23 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 					});
 					
 					MessageBox messageDialog = new MessageBox(newParent.getShell(), SWT.ICON_INFORMATION | SWT.OK);
-	                messageDialog.setText("EEA Generation");
-	                messageDialog.setMessage("EEA generation was successful.\n"
-	                		+ "\nCSV records:\t" + converter.getTotalCsvRecords() 
-	                		+ "\nEEA entries:\t" + converter.getProcessedCsvRecords()
-	                		+ "\n@NonNull:\t" + converter.getNumNonNull()
-	                		+ "\n@Nullable:\t" + converter.getNumNullable()
-	                		+ "\nSkipped:\t\t" + converter.getSkippedCsvRecords());
+	                messageDialog.setText("Javadoc database and EEA Generation");
+	                String message = "";
+	                if (javadocCb.getSelection()) {
+	                	message = "Generation of Javadoc database was successful.\n";
+	                	message += "\nRecords created:\t" + converter.getNumRecordsJavadocDatabase();
+	                }
+	                if (eeaCb.getSelection()) {
+	                	message = message.isEmpty() ? message : message + "\n\n";
+	                	message += "Generation of EEA was successful.\n"
+		                		+ "\nCSV records:\t" + converter.getTotalCsvRecords() 
+		                		+ "\nEEA entries:\t" + converter.getProcessedCsvRecords()
+		                		+ "\n@NonNull:\t" + converter.getNumNonNull()
+		                		+ "\n@Nullable:\t" + converter.getNumNullable()
+		                		+ "\nSkipped:\t\t" + converter.getSkippedCsvRecords();
+	                }
+	                
+	                messageDialog.setMessage(message);
 	                messageDialog.open();
 	                
 				} catch (Exception e1) {

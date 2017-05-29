@@ -26,8 +26,14 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 import ch.unibe.scg.methodnullabilityplugin.Console;
-import ch.unibe.scg.methodnullabilityplugin.eea.CsvToEeaConverter;
+import ch.unibe.scg.methodnullabilityplugin.eea.CsvToEeaAndJavadocConverter;
 
+/**
+ * Implements the preference page for this plugin. Allows to configure the nullability data used by the plugin.
+ * 
+ * @see CsvToEeaAndJavadocConverter
+ *
+ */
 public class MethodNullabilityPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	public MethodNullabilityPreferencePage(){
@@ -272,7 +278,7 @@ public class MethodNullabilityPreferencePage extends PreferencePage implements I
 				
 				try {
 					
-					CsvToEeaConverter converter = new CsvToEeaConverter(csvPath, 
+					CsvToEeaAndJavadocConverter converter = new CsvToEeaAndJavadocConverter(csvPath, 
 							javadocCb.getSelection(), eeaCb.getSelection(), 
 							eeaPath, aiText.getText(), maxNonNull, minNullable);
 					BusyIndicator.showWhile(Display.getDefault(), new Runnable(){

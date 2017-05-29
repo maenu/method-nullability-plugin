@@ -14,6 +14,7 @@ Once the plugin is installed, the following configuration has to be made:
 * Go to Windows -> Preferences -> Method Nullability.
 * Enable Eclipse annotation-based null analysis in menu 'Errors/Warnings'.
 * Generate EEA files and javadoc database: Specify a CSV file (to start with, use sample 'inter-intra_small.csv') and a EEA destination folder (workspace location). Optionally specify an artifactId (e.g. httpclient) if you want to only generate EEA files for a specific set of libraries.
+* NB: The javadoc database is created in the .metadata folder of the current workspace.
 * Modify the max. and min. nullability thresholds as you prefer.
 
 ## Development and Test setup
@@ -46,13 +47,10 @@ Sample nullability data to use as input to generate EEA files and javadoc databa
 ###### method-nullability-plugin-test.zip
 Test project to import into test workspace.
 
-##### method-nullability.db
-SQLite database, contains indexes for method nullability lookup.
-
 ##### lib/
 Contains the JARs of the third-party dependencies:
 
-* commons-csv <br>Used by `DatabaseFiller` to recreate the plugin's nullability database from raw data if available.
+* commons-csv <br>Used by `JavadocDatabaseCreator` to recreate the plugin's nullability database from raw data if available.
 * guava <br>Used for its hashing function, used to create key from hovered method for nullbility lookup.
 * sqlite-jdbc <br>Used for the nullability database.
 * h2 <br>Used as auxiliary database to select from CSV data

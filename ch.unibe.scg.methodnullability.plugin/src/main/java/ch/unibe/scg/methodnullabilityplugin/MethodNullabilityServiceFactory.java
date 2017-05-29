@@ -5,6 +5,10 @@ import org.eclipse.ui.services.IServiceLocator;
 
 import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor;
 
+/**
+ * Extension point factory implementation. Creates the {@link MethodNullabilityAccessor} 
+ * singleton instance in lazy fashion.
+ */
 public class MethodNullabilityServiceFactory extends AbstractServiceFactory {
 
 	@SuppressWarnings("rawtypes")

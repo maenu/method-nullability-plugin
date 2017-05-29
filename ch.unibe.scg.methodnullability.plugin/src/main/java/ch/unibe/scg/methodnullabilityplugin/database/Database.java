@@ -26,6 +26,9 @@ import com.google.common.hash.Hashing;
 
 import ch.unibe.scg.methodnullabilityplugin.Console;
 
+/**
+ * Facilitates access to sqlite database.
+ */
 public class Database {
 
 	{

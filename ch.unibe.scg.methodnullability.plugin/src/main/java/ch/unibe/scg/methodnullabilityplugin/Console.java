@@ -13,6 +13,9 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 
+/**
+ * Helper class for logging purposes on behalf of the plugin.
+ */
 public class Console implements IConsoleFactory {
 	
 	public static enum LogLevel {INFO, DEBUG, TRACE};

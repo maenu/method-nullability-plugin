@@ -11,7 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import ch.unibe.scg.methodnullabilityplugin.eea.CsvAccessor.NullabilityRecord;
 
-public class DatabaseCreator {
+/**
+ * Based on a given list of {@link NullabilityRecord}, {@link JavadocDatabaseCreator} creates a sqlite database 
+ * in the given <code>databaseUrl</code>. If the database already exists, it is deleted first. If it does not exist,
+ * it gets created from scratch.
+ * 
+ */
+public class JavadocDatabaseCreator {
 
 	public int execute(URL databaseUrl, List<NullabilityRecord> csvEntries, String artifactIds, double maxNullabilityNonNull, double minNullabilityNullable) throws Exception {
 		if (csvEntries == null || csvEntries.isEmpty()) {

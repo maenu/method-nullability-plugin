@@ -12,20 +12,31 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.util.ExternalAnnotationUtil;
 import org.eclipse.jdt.core.util.ExternalAnnotationUtil.MergeStrategy;
 import org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
+import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.eclipse.jdt.internal.core.util.KeyToSignature;
 import org.eclipse.ui.PlatformUI;
 
 import ch.unibe.scg.methodnullabilityplugin.Console;
-import ch.unibe.scg.methodnullabilityplugin.database.DatabaseCreator;
+import ch.unibe.scg.methodnullabilityplugin.database.JavadocDatabaseCreator;
 import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityAccessor;
 import ch.unibe.scg.methodnullabilityplugin.eea.CsvAccessor.NullabilityRecord;
 
 /**
  * Converts nullability data from a CSV file to a javadoc database and EEA files. 
+ * The database is created in .metadata folder of the current workspace.
+ * 
+ * <p>Note that this class contains a lot of reverse engineered code from the Eclipse IDE EEA file format, 
+ * it was taken from Eclipse Neon.2 Release (4.6.2). This format might change over time as it is neither standardized nor public. 
+ * Confer for instance {@link BinaryTypeBinding}, {@link ReferenceBinding}, {@link MethodBinding}, TypeRenderer.
+ * </p>
+ * 
+ * @see MethodNullabilityAccessor#getDatabaseUrl()
  */
-public class CsvToEeaConverter {
+public class CsvToEeaAndJavadocConverter {
 
 	private static final MergeStrategy MERGE_STRATEGY = MergeStrategy.OVERWRITE_ANNOTATIONS;
 	
@@ -46,7 +57,7 @@ public class CsvToEeaConverter {
 	private boolean createEea;
 
 	
-	public CsvToEeaConverter(String csvFilename, boolean createJavadoc, boolean createEea, String eeaPath, String artifactIds, double maxNullabilityNonNull, double minNullabilityNullable) {
+	public CsvToEeaAndJavadocConverter(String csvFilename, boolean createJavadoc, boolean createEea, String eeaPath, String artifactIds, double maxNullabilityNonNull, double minNullabilityNullable) {
 		this.csvFilename = csvFilename;
 		this.createJavadoc = createJavadoc;
 		this.createEea = createEea;
@@ -87,7 +98,7 @@ public class CsvToEeaConverter {
 			@SuppressWarnings("null")
 			URL databaseUrl = PlatformUI.getWorkbench().getService(
 					MethodNullabilityAccessor.class).getDatabaseUrl();
-			int numRecords = new DatabaseCreator().execute(databaseUrl, csvEntries, artifactIds, maxNullabilityNonNull, minNullabilityNullable);
+			int numRecords = new JavadocDatabaseCreator().execute(databaseUrl, csvEntries, artifactIds, maxNullabilityNonNull, minNullabilityNullable);
 			numRecordsJavadocDatabase = numRecords;
 		}
 		
@@ -496,7 +507,7 @@ public class CsvToEeaConverter {
 			csvFilename = "inter-intra_small.csv";
 		}
 		
-		new CsvToEeaConverter(csvFilename, true, true, "method-nullability-plugin/annot", "", 0.1, 0.1).execute();
+		new CsvToEeaAndJavadocConverter(csvFilename, true, true, "method-nullability-plugin/annot", "", 0.1, 0.1).execute();
 //		new CsvToEeaConverter("","","",0,0.5).runTests();
 	}
 }

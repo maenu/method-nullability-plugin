@@ -3,7 +3,7 @@ package ch.unibe.scg.methodnullabilityplugin.database;
 import java.util.Objects;
 
 /**
- * Simple POJO.
+ * Simple POJO for method nullability info.
  */
 public class MethodNullabilityInfo {
 

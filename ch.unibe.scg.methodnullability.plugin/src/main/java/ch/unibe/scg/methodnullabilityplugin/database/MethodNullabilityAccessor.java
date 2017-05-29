@@ -15,6 +15,12 @@ import ch.unibe.scg.methodnullabilityplugin.Activator;
 import ch.unibe.scg.methodnullabilityplugin.Console;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
+/**
+ * Global accessor class that facilitates access to {@link MethodNullabilityInfo} and the database location.
+ * 
+ * @see Database
+ * @see MethodNullabilityInfo
+ */
 public class MethodNullabilityAccessor {
 
 	/**

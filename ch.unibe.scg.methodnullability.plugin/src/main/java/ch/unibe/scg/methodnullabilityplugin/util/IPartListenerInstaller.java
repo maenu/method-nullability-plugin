@@ -13,6 +13,9 @@ import org.eclipse.ui.PlatformUI;
 
 import ch.unibe.scg.methodnullabilityplugin.Console;
 
+/**
+ * Contains helper methods regarding {@link IPartListener2}.
+ */
 public class IPartListenerInstaller {
 
 	// returns an error string or null if a-ok

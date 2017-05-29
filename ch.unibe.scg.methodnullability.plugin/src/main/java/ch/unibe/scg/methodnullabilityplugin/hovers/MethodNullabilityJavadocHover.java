@@ -17,7 +17,11 @@ import ch.unibe.scg.methodnullabilityplugin.database.MethodNullabilityInfo;
 import ch.unibe.scg.methodnullabilityplugin.util.Util;
 
 /**
- * Extension of {@link JavadocHover}, adding a line of nullability information to the javadoc of a method.
+ * Extension of {@link JavadocHover}, adding a line of nullability information to the javadoc of a method in the
+ * 'returns' paragraph.
+ * 
+ * @see JavadocHover
+ * @see MethodNullabilityAccessor
  */
 public class MethodNullabilityJavadocHover extends JavadocHover {
 

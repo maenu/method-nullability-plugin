@@ -7,8 +7,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-// H2 In-Memory Database to access CSV nullability data. 
-// cf. http://www.javatips.net/blog/h2-in-memory-database-example
+/**
+ * Extracts the CSV data as a list of {@link NullabilityRecord} from a specified file. 
+ * 
+ * <p>The raw CSV data is grouped according to groupId, artifactId, class and method.</p>
+ *
+ * NB: Uses H2 In-Memory Database to access CSV nullability data. 
+ * Cf. http://www.javatips.net/blog/h2-in-memory-database-example". 
+ */
 public class CsvAccessor {
 
     private static final String DB_DRIVER = "org.h2.Driver";

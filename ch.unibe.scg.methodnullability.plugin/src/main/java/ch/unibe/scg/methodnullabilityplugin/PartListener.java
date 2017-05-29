@@ -5,6 +5,9 @@ import org.eclipse.ui.IWorkbenchPartReference;
 
 import ch.unibe.scg.methodnullabilityplugin.util.IPartListenerInstaller;
 
+/**
+ * Available for future extensions.
+ */
 public class PartListener implements IPartListener2 {
 
 	public PartListener() {
@@ -14,24 +17,6 @@ public class PartListener implements IPartListener2 {
 			Console.err("install fail: " + errStr);
 			throw new RuntimeException(errStr);
 		}
-
-		// install on currently open editors
-		// run this in the UI thread?
-//		Display.getDefault().asyncExec(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				ArrayList<IEditorPart> eds = IPartListenerInstaller
-//						.getCurrentEditors();
-//				for (IEditorPart ed : eds) {
-////					NullabilityMarker.add(ed);
-////					EditorOnSaveListener.create(ed);
-////					if (ed instanceof JavaEditor) {
-////						addDocumentListener((JavaEditor) ed);
-////					}
-//				}
-//			}
-//		});
 		
 	}
 	

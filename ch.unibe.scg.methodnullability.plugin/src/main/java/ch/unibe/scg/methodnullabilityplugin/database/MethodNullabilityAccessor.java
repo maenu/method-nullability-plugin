@@ -80,10 +80,10 @@ public class MethodNullabilityAccessor {
 	 * @return The best match.
 	 */
 	private Match extractBestMatch(Result result) {
-		if (result.exact.invocations > 0) {
+		if (result.exact.dereferences > 0) {
 			return result.exact;
 		}
-		if (result.anyVersion.invocations > 0) {
+		if (result.anyVersion.dereferences > 0) {
 			return result.anyVersion;
 		}
 		return result.anyArtifact;

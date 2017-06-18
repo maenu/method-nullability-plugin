@@ -107,11 +107,11 @@ public class CsvToEeaAndJavadocConverter {
 		}
  		
 		int currentRecord = 0;
-		int recordsWithInvocations = 0;
+		int recordsWithDereferences = 0;
 		for (NullabilityRecord nr : csvEntries) {
 			currentRecord++;
 			if (artifactIds == null || artifactIds.isEmpty() || artifactIds.contains(nr.getArtifactId())) {
-				if (nr.hasInvocations()) {
+				if (nr.hasDereferences()) {
 					double nullability = nr.nullability();
 					Character annotation = null;
 					if (nullability >= minNullabilityNullable) {
@@ -136,18 +136,17 @@ public class CsvToEeaAndJavadocConverter {
 							String fAnnotatedSignature = annotateSignature(fSignature, annotation.charValue()); // "L0java/lang/Object;";
 							
 							ExternalAnnotationUtil.annotateMethodReturnType(fAffectedTypeName, fAnnotationFile, fSelector, fSignature, fAnnotatedSignature, MERGE_STRATEGY, null);
-							recordsWithInvocations++;
+							recordsWithDereferences++;
 						} catch (Exception re) {
 							Console.err("execute failed for [" + nr + "], currentRecord=" + currentRecord, re);
 							Console.err("fAnnotationFile=" + fAnnotationFile);
-							throw re;
 						}
 					}
 				}
 			}
 		}
 		
-		this.numProcessedCsvRecords = recordsWithInvocations;
+		this.numProcessedCsvRecords = recordsWithDereferences;
 		
 		Console.msg("CsvToEeaConverter.execute() <--");
 	}
@@ -323,7 +322,7 @@ public class CsvToEeaAndJavadocConverter {
 //			for (int i = 0; i < count; i++) {
 //				buffer.append(syntheticOuterArguments[i].type.signature());
 //			}
-//			// move the extra padding arguments of the synthetic constructor invocation to the end
+//			// move the extra padding arguments of the synthetic constructor dereference to the end
 //			for (int i = targetParameters.length, extraLength = this.parameters.length; i < extraLength; i++) {
 //				buffer.append(this.parameters[i].signature());
 //			}

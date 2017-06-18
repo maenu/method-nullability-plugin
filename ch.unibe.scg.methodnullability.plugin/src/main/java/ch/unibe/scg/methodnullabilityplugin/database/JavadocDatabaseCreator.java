@@ -32,7 +32,7 @@ public class JavadocDatabaseCreator {
 							try {
 								statement.executeUpdate("drop table if exists " + index);
 								statement.executeUpdate(
-										"create table " + index + " (hash string, checks integer, invocations integer)");
+										"create table " + index + " (hash string, nonNulls integer, dereferences integer)");
 								statement.executeUpdate("create index " + index + "_hash on " + index + " (hash)");
 							} catch (SQLException exception) {
 								throw new RuntimeException(exception);
@@ -53,14 +53,14 @@ public class JavadocDatabaseCreator {
 						
 						if (!skip) {
 							int checks = record.getChecks();
-							int invocations = record.getInvocations();
+							int dereferences = record.getDereferences();
 							String hashAnyVersion = Database.hash(record.getGroupId(), record.getArtifactId(), record.getClazz(), record.getMethod());
 							String hashAnyArtifact = Database.hash(record.getClazz(), record.getMethod());
 							try {
 								statement.executeUpdate("insert into " + Database.INDEX_ANY_VERSION + " values('" + hashAnyVersion
-										+ "', " + checks + ", " + invocations + ")");
+										+ "', " + checks + ", " + dereferences + ")");
 								statement.executeUpdate("insert into " + Database.INDEX_ANY_ARTIFACT + " values('" + hashAnyArtifact
-										+ "', " + checks + ", " + invocations + ")");
+										+ "', " + checks + ", " + dereferences + ")");
 								numRecords.incrementAndGet();
 							} catch (SQLException exception) {
 								throw new RuntimeException(exception);

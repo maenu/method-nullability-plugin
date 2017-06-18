@@ -6,14 +6,15 @@ To install the plugin in any Eclipse IDE for normal use, proceed as follows:
 
 * Install Eclipse Neon with [PDE](http://www.eclipse.org/pde/).
 * Checkout the 3 source projects into an Eclipse workspace with your Eclipse PDE. Use the site.xml file to build the features and the update site, respectively. 
-* In the Eclipse instance you want to install the plugin go to Help -> Install New Software... and install the plugin as usual using the previously built update site.
-* After the installation, go to Windows -> Preferences -> Method Nullability to configure the plugin and generate EEA files.
+* In the Eclipse instance you want to install the plugin go to Help -> Install New Software... and install the plugin as usual using the previously built update site. Disable "Group items by category" to see the plugin.
+* After the installation, go to Windows -> Preferences -> Method Nullability to configure the plugin and generate EEA files. Set the EEA path to a folder that exists in the workspace, using a path relative to the workspace.
+* Enable the null analysis and set the external annotations folder for Maven dependencies in the test project's build path.
 
 ## Plugin configuration
 Once the plugin is installed, the following configuration has to be made:
 * Go to Windows -> Preferences -> Method Nullability.
 * Enable Eclipse annotation-based null analysis in menu 'Errors/Warnings'.
-* Generate EEA files and javadoc database: Specify a CSV file (to start with, use sample 'inter-intra_small.csv') and a EEA destination folder (workspace location). Optionally specify an artifactId (e.g. httpclient) if you want to only generate EEA files for a specific set of libraries.
+* Generate EEA files and javadoc database: Specify a CSV file (to start with, use sample 'lucene-6-nullability.csv') and a EEA destination folder (workspace location). Optionally specify an artifactId (e.g. httpclient) if you want to only generate EEA files for a specific set of libraries.
 * NB: The javadoc database is created in the .metadata folder of the current workspace.
 * Modify the max. and min. nullability thresholds as you prefer.
 
@@ -39,7 +40,7 @@ Open with the Plugin-Manifest Editor.
 Declares the used extension points and the provided extensions, as well as the dependencies to other plugins.
 Sets the files available at the plugin run-time in the build properties, i.e., the database and libraries.
 
-##### inter-intra_small.csv
+##### lucene-6-nullability.csv
 Sample nullability data to use as input to generate EEA files and javadoc database. 
 
 ##### src/main/resources/

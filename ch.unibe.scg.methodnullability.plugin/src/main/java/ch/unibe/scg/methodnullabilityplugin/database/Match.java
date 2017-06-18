@@ -6,17 +6,17 @@ package ch.unibe.scg.methodnullabilityplugin.database;
 public class Match {
 
 	/**
-	 * How many invocations are checked for null.
+	 * How many dereferences are checked for null.
 	 */
 	public final int checks;
 	/**
 	 * How often the method is invoked.
 	 */
-	public final int invocations;
+	public final int dereferences;
 
-	public Match(int checks, int invocations) {
+	public Match(int checks, int dereferences) {
 		this.checks = checks;
-		this.invocations = invocations;
+		this.dereferences = dereferences;
 	}
 
 }

@@ -27,7 +27,7 @@ public class CsvAccessor {
         	List<NullabilityRecord> result = new ArrayList<>();
         	try (Connection connection = getDBConnection()) {
         		Statement statement = connection.createStatement();
-	            String groupQuery = "SELECT groupId, artifactId, class, method, sum(CONVERT(checks, INT)) as numChecks, sum(CONVERT(invocations, INT)) as numInvocations "
+	            String groupQuery = "SELECT groupId, artifactId, class, method, sum(CONVERT(checks, INT)) as numChecks, sum(CONVERT(dereferences, INT)) as numDereferences "
 	            		+ "from CSVREAD('" + filename + "') "
 	            		+ "group by groupId, artifactId, class, method order by groupId, artifactId, class, method;";
 	            ResultSet resultSet = statement.executeQuery(groupQuery);
@@ -37,7 +37,7 @@ public class CsvAccessor {
 					String c = resultSet.getString("class");
 					String m = resultSet.getString("method");
 					int nc = resultSet.getInt("numChecks");
-					int ni = resultSet.getInt("numInvocations");
+					int ni = resultSet.getInt("numDereferences");
 	                NullabilityRecord e = new NullabilityRecord(g, a, c, m, nc, ni);
 	                result.add(e);
 	            }
@@ -67,13 +67,13 @@ public class CsvAccessor {
     }
     
     public static class NullabilityRecord {
-		// "groupId","artifactId","version","class","method","checks","invocations"
+		// "groupId","artifactId","version","class","method","checks","dereferences"
 		private String groupId;
 		private String artifactId;
 		private String clazz;
 		private String method;
 		public final int checks;
-		public final int invocations;
+		public final int dereferences;
 
 		NullabilityRecord(String g, String a, String c, String m, int cs, int i) {
 			this.groupId = g;
@@ -81,7 +81,7 @@ public class CsvAccessor {
 			this.clazz = c;
 			this.method = m;
 			this.checks = cs;
-			this.invocations = i;
+			this.dereferences = i;
 		}
 
 		public String getGroupId() {
@@ -104,22 +104,22 @@ public class CsvAccessor {
 			return checks;
 		}
 
-		public int getInvocations() {
-			return invocations;
+		public int getDereferences() {
+			return dereferences;
 		}
 		
-		public boolean hasInvocations() {
-			return invocations > 0;
+		public boolean hasDereferences() {
+			return dereferences > 0;
 		}
 		
 		public double nullability() {
-			return (double) checks / invocations;
+			return (double) checks / dereferences;
 		}
 
 		@Override
 		public String toString() {
 			return "NullabilityRecord [groupId=" + groupId + ", artifactId=" + artifactId + ", clazz=" + clazz
-					+ ", method=" + method + ", checks=" + checks + ", invocations=" + invocations + "]";
+					+ ", method=" + method + ", checks=" + checks + ", dereferences=" + dereferences + "]";
 		}
 	}
     

@@ -26,7 +26,7 @@ import ch.unibe.scg.methodnullabilityplugin.util.Util;
 public class MethodNullabilityJavadocHover extends JavadocHover {
 
 	private static final String BACKGROUND_COLOR = "<span style=\"background-color: rgb(217,226,243)\">";
-	private static final String NULLABILITY_INFO = BACKGROUND_COLOR + "<b>%.0f%%</b> check the returned value (<b>%d</b> out of <b>%d</b> invocations)</span>";
+	private static final String NULLABILITY_INFO = BACKGROUND_COLOR + "<b>%.0f%%</b> check the returned value before dereferencing it (<b>%d</b> out of <b>%d</b> times)</span>";
 	private static final String NULLABILITY_NOT_AVAILABLE = BACKGROUND_COLOR + "nullability not available</span>";
 	
 	private static final String RETURNS_REGEX = "(<dt>Returns:</dt><dd>)(.*?)(</dd>)"; // append to javadoc 'Returns' doc
@@ -113,11 +113,11 @@ public class MethodNullabilityJavadocHover extends JavadocHover {
 	 * 
 	 * @param match
 	 *            The match to format.
-	 * @return A HTML string with the ratio and explicit checks and invocations.
+	 * @return A HTML string with the ratio and explicit checks and dereferences.
 	 */
 	private String format(MethodNullabilityInfo match) {
-		if (match != null && match.hasInvocations()) {
-			return String.format(NULLABILITY_INFO, 100 * match.nullability(), match.getChecks(), match.getInvocations());
+		if (match != null && match.hasDereferences()) {
+			return String.format(NULLABILITY_INFO, 100 * match.nullability(), match.getChecks(), match.getDereferences());
 		}
 		return NULLABILITY_NOT_AVAILABLE;
 	}

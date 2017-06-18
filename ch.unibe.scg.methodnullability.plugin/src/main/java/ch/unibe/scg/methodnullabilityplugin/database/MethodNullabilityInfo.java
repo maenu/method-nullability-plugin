@@ -28,16 +28,16 @@ public class MethodNullabilityInfo {
 		return match.checks;
 	}
 	
-	public int getInvocations() {
-		return match.invocations;
+	public int getDereferences() {
+		return match.dereferences;
 	}
 	
-	public boolean hasInvocations() {
-		return match.invocations > 0;
+	public boolean hasDereferences() {
+		return match.dereferences > 0;
 	}
 	
 	public double nullability() {
-		return (double) match.checks / match.invocations;
+		return (double) match.checks / match.dereferences;
 	}
 	
 	public static void main(String[] args) {

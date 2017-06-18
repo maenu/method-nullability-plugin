@@ -8,7 +8,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,12 +50,9 @@ public class Database {
 		return Hashing.sha256().hashString(String.join("|", parts), StandardCharsets.UTF_8).toString();
 	}
 
-	private DeclaringRootTypesFinder declaringRootClassFinder;
 	private Connection connection;
 
 	public Database(URL databaseUrl) throws SQLException, IOException {
-		this.declaringRootClassFinder = new DeclaringRootTypesFinder();
-		
 		this.connection = DriverManager.getConnection("jdbc:sqlite:" + databaseUrl.getFile());
 	}
 
@@ -71,48 +67,42 @@ public class Database {
 	 *             If the access to method model failed
 	 */
 	public Result search(IMethod method) throws JavaModelException {
-		Map<String, Artifact> declaringRootTypes = this.declaringRootClassFinder.findDeclaringRootTypes(method).stream()
-				.collect(Collectors.toMap(IType::getFullyQualifiedName, this::toArtifact));
+		IType declaringType = method.getDeclaringType();
 		String returnType = Signature.toString(method.getReturnType());
 		String name = method.getElementName();
 		List<String> parameterTypes = Stream.of(method.getParameterTypes()).map(Signature::toString)
 				.collect(Collectors.toList());
 		String methodFull = String.format("%s %s(%s)", returnType, name, String.join(",", parameterTypes));
-		return this.search(declaringRootTypes, methodFull);
+		return this.search(this.toArtifact(declaringType), declaringType.getFullyQualifiedName(), methodFull);
 	}
 
-	private Result search(Map<String, Artifact> classes, String method) {
-		Map<String, List<String>> hashes = new HashMap<>();
-		//hashes.put(INDEX_EXACT, new ArrayList<>());
-		hashes.put(INDEX_ANY_VERSION, new ArrayList<>());
-		hashes.put(INDEX_ANY_ARTIFACT, new ArrayList<>());
-		classes.entrySet().stream().forEach(entry -> {
-			String clazz = entry.getKey();
-			Artifact artifact = entry.getValue();
-			//String hashExact = hash(artifact.groupId, artifact.artifactId, /*artifact.version,*/ clazz, method);
-			String hashAnyVersion = hash(artifact.groupId, artifact.artifactId, clazz, method);
-			String hashAnyArtifact = hash(clazz, method);
-			//hashes.get(INDEX_EXACT).add(hashExact);
-			hashes.get(INDEX_ANY_VERSION).add(hashAnyVersion);
-			hashes.get(INDEX_ANY_ARTIFACT).add(hashAnyArtifact);
-		});
+	private Result search(Artifact artifact, String clazz, String method) {
+		Map<String, String> hashes = new HashMap<>();
+		// String hashExact = hash(artifact.groupId, artifact.artifactId,
+		// /*artifact.version,*/ clazz, method);
+		String hashAnyVersion = hash(artifact.groupId, artifact.artifactId, clazz, method);
+		String hashAnyArtifact = hash(clazz, method);
+		// hashes.get(INDEX_EXACT).add(hashExact);
+		hashes.put(INDEX_ANY_VERSION, hashAnyVersion);
+		hashes.put(INDEX_ANY_ARTIFACT, hashAnyArtifact);
 		Optional<Match> matchAnyArtifact = this.match(INDEX_ANY_ARTIFACT, hashes.get(INDEX_ANY_ARTIFACT));
 		Optional<Match> matchAnyVersion = this.match(INDEX_ANY_VERSION, hashes.get(INDEX_ANY_VERSION));
-		Optional<Match> matchExact = Optional.empty(); // this.match(INDEX_EXACT, hashes.get(INDEX_EXACT));
+		Optional<Match> matchExact = Optional.empty(); // this.match(INDEX_EXACT,
+														// hashes.get(INDEX_EXACT));
 		return new Result(matchExact.orElse(new Match(0, 0)), matchAnyVersion.orElse(new Match(0, 0)),
 				matchAnyArtifact.orElse(new Match(0, 0)));
 	}
 
-	private Optional<Match> match(String index, List<String> hashes) {
-		String hashStrings = hashes.stream().map(hash -> String.format("'%s'", hash)).collect(Collectors.joining(", "));
+	private Optional<Match> match(String index, String hash) {
 		try {
 			try (Statement statement = this.connection.createStatement()) {
-				ResultSet existsDB = statement.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + INDEX_ANY_ARTIFACT + "';");
+				ResultSet existsDB = statement.executeQuery(
+						"SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + INDEX_ANY_ARTIFACT + "';");
 				if (existsDB.getInt(1) == 0) {
 					return Optional.empty();
 				}
-				ResultSet resultSet = statement.executeQuery(
-						"select sum(checks), sum(invocations) from " + index + " where hash in (" + hashStrings + ")");
+				ResultSet resultSet = statement.executeQuery("select sum(nonNulls), sum(dereferences) from " + index
+						+ " where hash  = " + String.format("'%s'", hash));
 				if (resultSet.next()) {
 					return Optional.of(new Match(resultSet.getInt(1), resultSet.getInt(2)));
 				}
@@ -137,7 +127,7 @@ public class Database {
 		}
 		return ARTIFACT_NO_ARTIFACT_FOUND;
 	}
-	
+
 	@Override
 	protected void finalize() throws Throwable {
 		try {
